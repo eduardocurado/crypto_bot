@@ -6,7 +6,7 @@ from robot.Utils import Initializations
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 votes = Table('Vote', meta,
-    Column('date', Date, primary_key = True),
+    Column('date', DateTime, primary_key = True),
     Column('coin', String, primary_key = True),
     Column('sma', Integer),
     Column('ema', Integer),

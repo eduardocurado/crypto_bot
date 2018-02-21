@@ -12,6 +12,7 @@ def feed_data(coin):
     last = intermediate_data['last']
     coin = 'BTC'
     tickers.insert_tickers(date, coin, last, 0)
+    return last, date
 
 
 def triple_screen(n, coin, screen):

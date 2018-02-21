@@ -1,7 +1,7 @@
 import quandl
 import pickle
 import sqlalchemy
-from sqlalchemy import Table, Column, Integer, Date, DateTime, String, Float, ForeignKey
+from sqlalchemy import Table, Column, Integer, DateTime, String, Float
 
 
 def connect_db(user, password, db, host='localhost', port=5432):
@@ -96,6 +96,18 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                   Column('macd', Integer),
                   Column('screen', Integer, primary_key=True)
                   )
+
+    long_positions = Table('Long', meta,
+                           Column('id_position', Integer, primary_key=True),
+                           Column('coin', String, primary_key=True),
+                           Column('date_ask', DateTime),
+                           Column('ask', Float),
+                           Column('date_settlement', DateTime),
+                           Column('settlement', Float),
+                           Column('take_profit', Float),
+                           Column('stop_loss', Float),
+                           Column('status', String)
+                           )
 
     meta.create_all(con)
     return con, meta

@@ -14,13 +14,13 @@ import sqlalchemy
 from sqlalchemy.sql import select, and_, or_, not_, desc, asc
 from sqlalchemy import Table, Column, Integer, Date, DateTime, String,Float, ForeignKey
 from sqlalchemy.orm import sessionmaker
-from robot.Indicators import Calculator, Assessment
+from robot.Indicators import Calculator, Ingestion
 from robot.Utils import Initializations, Plots
 
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 rsi = Table('Rsi', meta,
-    Column('date', Date, primary_key = True),
+    Column('date', DateTime, primary_key = True),
     Column('coin', String, primary_key = True),
     Column('rsi', Float),
     Column('screen', Integer, primary_key=True)

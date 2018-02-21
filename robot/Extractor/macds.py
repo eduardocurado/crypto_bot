@@ -1,12 +1,12 @@
 import pandas as pd
-from sqlalchemy import Table, Column, Integer, Date, String, Float
+from sqlalchemy import Table, Column, Integer, DateTime, String, Float
 from sqlalchemy.sql import select, and_, desc
 
 from robot.Utils import Initializations
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 macd = Table('Macd', meta,
-    Column('date', Date, primary_key = True),
+    Column('date', DateTime, primary_key = True),
     Column('coin', String, primary_key = True),
     Column('ema12', Float),
     Column('ema_26', Float),

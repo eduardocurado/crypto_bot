@@ -6,7 +6,7 @@ from robot.Utils import Initializations, Plots
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 ema = Table('Ema', meta,
-            Column('date', Date, primary_key = True),
+            Column('date', DateTime, primary_key = True),
             Column('coin', String, primary_key = True),
             Column('ema5', Float),
             Column('ema20', Float),
