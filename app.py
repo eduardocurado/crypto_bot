@@ -17,18 +17,19 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     start = datetime.now()
     last_date = start
     while 1:
-        print(last_date)
         time.sleep(TIME_DEFAULT)
         tick, last_date = extractor.get_tick(coin)
         if not tick:
             print("ERROR")
             continue
         print(tick)
-        exits = exit.strategy_one(tick, coin)
+        open_positions = longPositions.get_open_positions(coin)
+        exits = exit.strategy_one(tick, coin, open_positions)
         if exits:
-            print(exits)
-        # do_exit()
-        longPositions.exit_positions(exits)
+            longPositions.exit_positions(exits)
+            features.update_balance()
+        #update_take_profit()
+        #update_stop_loss()
         features.update_indicators(last_date, coin, 0)
         TIME_DEFAULT_COUNT += 1
         if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL or not TIME_DEFAULT_COUNT % LONG_INTERVAL:
@@ -36,14 +37,16 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                 features.update_screen(INTERMEDIATE_INTERVAL, coin, 1)
             if not TIME_DEFAULT_COUNT % LONG_INTERVAL:
                 features.update_screen(LONG_INTERVAL, coin, 2)
-            entry_sign = enter.strategy_one()
+
+            entry_sign, size_operation = enter.strategy_one()
             if entry_sign:
-                longPositions.enter_positions(TIME_DEFAULT_COUNT, coin, last_date, tick)
+                longPositions.enter_positions(TIME_DEFAULT_COUNT, coin, size_operation, last_date, tick)
+                features.update_balance()
 
 
 
 
 TIME_DEFAULT = 1
-INTERMEDIATE_INTERVAL = 5*TIME_DEFAULT  # S
+INTERMEDIATE_INTERVAL = 3*TIME_DEFAULT  # S
 LONG_INTERVAL = 100*TIME_DEFAULT  # S
 main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL)

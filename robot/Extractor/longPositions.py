@@ -5,13 +5,14 @@ from sqlalchemy.sql import select, and_, desc
 
 from robot.Utils import Initializations
 from robot.Decision import features
-from robot.Extractor import orders_book
+from robot.Extractor import orders_book, shortPositions
 
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 long_positions = Table('Long', meta,
-                       Column('id_position', Integer, primary_key = True),
-                       Column('coin', String, primary_key = True),
+                       Column('id_position', Integer, primary_key=True),
+                       Column('coin', String, primary_key=True),
+                       Column('size', Float),
                        Column('date_ask', DateTime),
                        Column('ask', Float),
                        Column('date_settlement', DateTime),
@@ -25,7 +26,8 @@ long_positions = Table('Long', meta,
 def get_longs(n, coin, date):
     s = select([long_positions])\
         .where(and_(long_positions.c.coin == coin, long_positions.c.date <= date))\
-        .order_by(desc(long_positions.c.date_ask)).limit(n)
+        .order_by(desc(long_positions.c.date_ask))\
+        .limit(n)
     rows = con.execute(s)
     long_positions_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
     if not long_positions_df.empty:
@@ -36,8 +38,7 @@ def get_longs(n, coin, date):
 def get_all_longs(coin, screen):
     s = select([long_positions]) \
         .where(and_(long_positions.c.coin == coin, long_positions.c.screen == screen)) \
-        .order_by(
-        desc(long_positions.c.date_ask))
+        .order_by(desc(long_positions.c.date_ask))
     rows = con.execute(s)
     long_positions_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
     if not long_positions_df.empty:
@@ -56,25 +57,38 @@ def get_open_positions(coin):
     return long_positions_df
 
 
-def insert_long(id_position, coin, date_ask, ask, date_settlement, settlement, take_profit, stop_loss, status):
+def insert_long(id_position, coin, size, date_ask, ask, date_settlement, settlement, take_profit, stop_loss, status):
     try:
-        clause = long_positions.insert().values(id_position=id_position, coin=coin, date_ask=date_ask, ask=ask,
-                                                date_settlement=date_settlement, settlement=settlement,
+        clause = long_positions.insert().values(id_position=id_position, coin=coin, size=size, date_ask=date_ask,
+                                                ask=ask, date_settlement=date_settlement, settlement=settlement,
                                                 take_profit=take_profit, stop_loss=stop_loss, status=status)
         result = con.execute(clause)
     except Exception:
         print('Got error Long')
 
 
+def enter_positions(id_position, coin, size, date_ask, tick):
+    orders_book.create_order()
+    insert_long(id_position, coin, size, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                float(tick)+0.0001, float(tick)+0.0001, float(tick)-0.0001, 'active')
+
+
+def close_positions(id_position, coin):
+    try:
+        clause = long_positions.update(). \
+            where(and_(long_positions.c.id_position == id_position, long_positions.c.coin == coin)). \
+            values(status='closed')
+        result = con.execute(clause)
+    except Exception:
+        print('Got error Close')
+
+
 def exit_positions(exits):
-    #for each exits
-    orders_book.create_order()
-    features.update_position()
-    features.update_balance()
-    pass
-
-
-def enter_positions(id_position, coin, date_ask, tick):
-    orders_book.create_order()
-    insert_long(id_position, coin, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                float(tick)+0.001, float(tick)+0.01, float(tick)-0.001, 'active')
+    for e in exits:
+        date_ask = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ordered = orders_book.create_order()
+        ordered = dict({'date_settlement': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'settlement': (e.get('exit_price') - 0.001)})
+        close_positions(e.get('id'), e.get('coin'))
+        shortPositions.insert_short(e.get('id'), e.get('coin'), e.get('size'), date_ask, e.get('exit_price'),
+                                    ordered.get('date_settlement'), ordered.get('settlement'), e.get('source'))

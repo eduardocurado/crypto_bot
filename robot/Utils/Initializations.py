@@ -100,6 +100,7 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
     long_positions = Table('Long', meta,
                            Column('id_position', Integer, primary_key=True),
                            Column('coin', String, primary_key=True),
+                           Column('size', Float),
                            Column('date_ask', DateTime),
                            Column('ask', Float),
                            Column('date_settlement', DateTime),
@@ -108,6 +109,16 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                            Column('stop_loss', Float),
                            Column('status', String)
                            )
+    short_positions = Table('Short', meta,
+                            Column('id_position', Integer, primary_key=True),
+                            Column('coin', String, primary_key=True),
+                            Column('size', Float),
+                            Column('date_ask', DateTime),
+                            Column('ask', Float),
+                            Column('date_settlement', DateTime),
+                            Column('settlement', Float),
+                            Column('source', String)
+                            )
 
     meta.create_all(con)
     return con, meta
