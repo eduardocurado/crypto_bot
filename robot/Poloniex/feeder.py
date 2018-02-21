@@ -30,7 +30,6 @@ def get_tick(coin):
     intermediate_data = polo('returnTicker')[coin]
     date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     last = intermediate_data['last']
-    coin = 'BTC_ETH'
     tickers.insert_tickers(date, coin, last, 0)
     return last, date
 

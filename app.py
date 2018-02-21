@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-from robot.Poloniex import extractor
+from robot.Poloniex import feeder
 from robot.Utils import Initializations
 from robot.Decision import features, exit, enter
 from robot.Extractor import longPositions
@@ -11,14 +11,16 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     coin = 'BTC_ETH'
     Initializations.drop_all_tables('postgres', '', 'robotdb')
     Initializations.create_all_tables('postgres', '', 'robotdb')
-    size_historical = extractor.get_historical_data('BTC_ETH')
-    extractor.get_historical_screen(size_historical, 4, 'BTC_ETH', 1)
-    extractor.get_historical_screen(size_historical, 24, 'BTC_ETH', 2)
+    size_historical = feeder.get_historical_data('BTC_ETH')
+    feeder.get_historical_screen(size_historical, 4, 'BTC_ETH', 1)
+    feeder.get_historical_screen(size_historical, 24, 'BTC_ETH', 2)
+
+    #start_getting new data
     start = datetime.now()
-    last_date = start
+    print(start)
     while 1:
         time.sleep(TIME_DEFAULT)
-        tick, last_date = extractor.get_tick(coin)
+        tick, last_date = feeder.get_tick(coin)
         if not tick:
             print("ERROR")
             continue
@@ -46,7 +48,7 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
 
 
 
-TIME_DEFAULT = 1
-INTERMEDIATE_INTERVAL = 3*TIME_DEFAULT  # S
+TIME_DEFAULT = 5
+INTERMEDIATE_INTERVAL = 20*TIME_DEFAULT  #S
 LONG_INTERVAL = 100*TIME_DEFAULT  # S
 main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL)
