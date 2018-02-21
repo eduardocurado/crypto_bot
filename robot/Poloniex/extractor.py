@@ -44,3 +44,16 @@ def get_historical_screen(n, interval, coin, screen):
             tickers.insert_tickers(row.date, coin, last, screen)
             features.update_indicators(row.date, coin, screen)
 
+
+def get_tick(coin):
+    polo = Poloniex()
+    # historical = polo.returnChartData(coin, 300)
+    h = polo.returnCurrencies(coin)
+    tick = np.mean((float(h['close']) + float(h['open']) + float(h['low']) + float(h['high'])))
+    date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(h['date']))
+    try:
+        tickers.insert_tickers(date, coin, tick, 0)
+    except Exception:
+        print("Error Inserting Tick")
+        return None, None
+    return tick, date

@@ -1,31 +1,34 @@
 from datetime import datetime
-
+import time
 from robot.Poloniex import extractor
 from robot.Utils import Initializations
+from robot.Decision import features
 
 
 def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    Initializations.drop_all_tables('postgres', '', 'robotdb')
-    Initializations.create_all_tables('postgres', '', 'robotdb')
+    Initializations.connect_db('postgres', '', 'robotdb')
+    #Initializations.drop_all_tables('postgres', '', 'robotdb')
+    #Initializations.create_all_tables('postgres', '', 'robotdb')
     start = datetime.now()
-    size_historical = extractor.get_historical_data('BTC_ETH')
+    #size_historical = extractor.get_historical_data('BTC_ETH')
     coin = 'BTC_ETH'
-    extractor.get_historical_screen(size_historical, 4, 'BTC_ETH', 1)
-    extractor.get_historical_screen(size_historical, 24, 'BTC_ETH', 2)
+    #extractor.get_historical_screen(size_historical, 4, 'BTC_ETH', 1)
+    #extractor.get_historical_screen(size_historical, 24, 'BTC_ETH', 2)
 
+    while 1:
+        time.sleep(TIME_DEFAULT)
+        print((datetime.now() - start).seconds)
+        tick, date_tick = extractor.get_tick(coin)
+        # check_exit()
+        features.update_indicators(date_tick, coin, 0)
+        TIME_DEFAULT_COUNT += 1
 
-    # while 1:
-    #     time.sleep(TIME_DEFAULT)
-    #     services.feed_data('BTC_ETH')
-    #     features.update_indicators(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), coin, 0)
-    #     TIME_DEFAULT_COUNT += 1
-    #
-    #     if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL:
-    #         features.update_screen(INTERMEDIATE_INTERVAL, coin, 1)
-    #
-    #     if not TIME_DEFAULT_COUNT % LONG_INTERVAL:
-    #         features.update_screen(LONG_INTERVAL, coin, 2)
+        if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL:
+            features.update_screen(INTERMEDIATE_INTERVAL, coin, 1)
+
+        if not TIME_DEFAULT_COUNT % LONG_INTERVAL:
+            features.update_screen(LONG_INTERVAL, coin, 2)
 
 
 TIME_DEFAULT = 15
