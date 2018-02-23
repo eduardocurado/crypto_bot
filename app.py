@@ -58,13 +58,13 @@ def main_historical(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL:
                 entry_sign = enter.strategy_one(coin, last_date, last_price)
                 if entry_sign == 'BUY':
-                    if signal_assessment.assignment():
+                    if signal_assessment.assignment_buy(coin):
                         print('BUY')
                         services.execute_order()
                         longPositions.enter_positions(TIME_DEFAULT_COUNT, coin, initial_balance, last_date, last_price)
                         features.update_balance()
                 elif entry_sign == 'SELL':
-                    if signal_assessment.assignment():
+                    if signal_assessment.assignment_sell(coin):
                         open_positions = longPositions.get_open_positions(coin)
                         if open_positions.empty:
                             continue
