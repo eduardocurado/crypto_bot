@@ -20,3 +20,7 @@ def triple_screen(n, coin, screen):
     if len(tickers_df) >= n:
         last = tickers_df.price.mean()
         tickers.insert_tickers(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), coin, last, screen)
+
+
+def execute_order():
+    pass

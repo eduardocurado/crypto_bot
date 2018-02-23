@@ -119,6 +119,12 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                             Column('settlement', Float),
                             Column('source', String)
                             )
+    signal = Table('Signal', meta,
+                   Column('date', DateTime, primary_key=True),
+                   Column('coin', String, primary_key=True),
+                   Column('tick', Float),
+                   Column('signal', String, primary_key=True)
+                   )
 
     meta.create_all(con)
     return con, meta

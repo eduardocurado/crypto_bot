@@ -1,7 +1,7 @@
-from robot.Extractor import longPositions
+from robot.Extractor import longPositions, signals
 
 
-def strategy_one(tick, coin, open_positions):
+def strategy_one(tick, date, coin, open_positions):
     exits = []
     for index, row in open_positions.iterrows():
         take_profit = row.take_profit
@@ -12,6 +12,7 @@ def strategy_one(tick, coin, open_positions):
                           'exit_price': float(tick),
                           'size': row.size
                           })
+            signals.insert_signal(date, coin, tick, 'SELL')
         elif float(tick) <= stop_loss:
             exits.append({'id': row.id_position,
                           'coin': coin,
@@ -19,4 +20,5 @@ def strategy_one(tick, coin, open_positions):
                           'exit_price': float(tick),
                           'size': row.size
                           })
+            signals.insert_signal(date, coin, tick, 'SELL')
     return exits

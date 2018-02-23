@@ -113,3 +113,31 @@ def get_macd_vote(date, coin, screen):
             else:
                 vote = 0
     return vote
+
+
+def trend_market(date, coin, screen):
+    ema_df = emas.get_emas(10, coin, date, screen)
+    print(ema_df)
+    if len(ema_df) < 3:
+        return {'long_vote': 0, 'short_vote': 0}
+    base_ema20 = ema_df.iloc[len(ema_df) - 1].ema20
+    current_ema20 = ema_df.iloc[0].ema20
+    base_ema5 = ema_df.iloc[len(ema_df)-1].ema5
+    current_ema5 = ema_df.iloc[0].ema5
+    vote_long = 0
+    vote_short = 0
+    if current_ema20 and base_ema20:
+        if current_ema20 - base_ema20 > 0:
+            vote_long = 1
+        elif current_ema20 - base_ema20 < 0:
+            vote_long = -1
+        else:
+            vote_long = 0
+    if current_ema5 and base_ema5:
+        if current_ema5 - base_ema5 > 0:
+            vote_short = 1
+        elif current_ema5 - base_ema5 < 0:
+            vote_short = -1
+        else:
+            vote_short = 0
+    return {'long_vote': vote_long, 'short_vote': vote_short}

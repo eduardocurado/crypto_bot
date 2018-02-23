@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from robot.Binance import services
 from robot.Decision import features
 from robot.Extractor import votes
 from robot.Indicators import Calculator, Ingestion
+from robot.Utils import services
 
 
 def update_indicators(date, coin, screen):

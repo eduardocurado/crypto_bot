@@ -70,7 +70,7 @@ def insert_long(id_position, coin, size, date_ask, ask, date_settlement, settlem
 def enter_positions(id_position, coin, size, date_ask, tick):
     orders_book.create_order()
     insert_long(id_position, coin, size, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                float(tick)+0.0001, float(tick)+0.0001, float(tick)-0.0001, 'active')
+                float(tick)*(1+0.05), float(tick)*(1-0.01), float(tick)-0.0001, 'active')
 
 
 def close_positions(id_position, coin):
@@ -92,3 +92,13 @@ def exit_positions(exits):
         close_positions(e.get('id'), e.get('coin'))
         shortPositions.insert_short(e.get('id'), e.get('coin'), e.get('size'), date_ask, e.get('exit_price'),
                                     ordered.get('date_settlement'), ordered.get('settlement'), e.get('source'))
+
+
+def update_take_profit():
+    # update open positions
+    pass
+
+
+def update_stop_loss():
+    # update open positions
+    pass
