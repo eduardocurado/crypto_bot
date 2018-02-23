@@ -27,7 +27,7 @@ def set_up_bd(coin, start):
 
 def main_historical(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    start = (datetime.now() - timedelta(days=30)).timestamp()
+    start = (datetime.now() - timedelta(days=90)).timestamp()
     coin = 'BTC_ETH'
     size_bd = set_up_bd(coin, start)
     print(size_bd)
@@ -39,7 +39,7 @@ def main_historical(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     initial_tick = tickers_df.iloc[0]
     longPositions.enter_positions(TIME_DEFAULT_COUNT, coin, initial_balance, initial_tick.date, initial_tick.price)
     for index, row in tickers_df.iterrows():
-        open_positions = longPositions.get_open_positions(coin)
+        open_positions = longPositions.get_positions(coin, 'active')
         last_date = row.date.strftime("%Y-%m-%d %H:%M:%S")
         last_price = row.price
         if not open_positions.empty:
@@ -65,7 +65,7 @@ def main_historical(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                         features.update_balance()
                 elif entry_sign == 'SELL':
                     if signal_assessment.assignment_sell(coin):
-                        open_positions = longPositions.get_open_positions(coin)
+                        open_positions = longPositions.get_positions(coin, 'active')
                         if open_positions.empty:
                             continue
                         else:
@@ -86,7 +86,6 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
     coin = 'BTC_ETH'
     initial_balance = 0.002189393483
-    #start_getting new data
     start = datetime.now()
     print(start)
 
@@ -97,7 +96,7 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             print("ERROR")
             continue
         print(tick)
-        open_positions = longPositions.get_open_positions(coin)
+        open_positions = longPositions.get_positions(coin, 'active')
         if not open_positions.empty:
             print('Has open position')
             exits = exit.strategy_one(tick, last_date, coin, open_positions)
