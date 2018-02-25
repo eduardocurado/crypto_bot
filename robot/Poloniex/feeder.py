@@ -10,8 +10,10 @@ from robot.Extractor import tickers
 
 def get_historical_data(coin, start):
     polo = Poloniex()
+    print('Fetching External Data')
     # historical = polo.returnChartData(coin, 300)
     historical = polo.returnChartData(coin, 300, start=start)
+    print('Got External Data')
     inserted = 0
     for h in historical:
         # tick = np.mean((float(h['close']) + float(h['open']) + float(h['low']) + float(h['high'])))

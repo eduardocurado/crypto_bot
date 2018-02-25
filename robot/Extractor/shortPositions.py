@@ -11,7 +11,7 @@ con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 short_positions = Table('Short', meta,
                         Column('id_position', Integer, primary_key=True),
                         Column('coin', String, primary_key=True),
-                        Column('size', Float),
+                        Column('size_position', Float),
                         Column('date_ask', DateTime),
                         Column('ask', Float),
                         Column('date_settlement', DateTime),
@@ -43,10 +43,15 @@ def get_all_shorts(coin, screen):
     return short_positions_df
 
 
-def insert_short(id_position, coin, size, date_ask, ask, date_settlement, settlement, source):
+def insert_short(id_position, coin, size_position, date_ask, ask, date_settlement, settlement, source):
     try:
-        clause = short_positions.insert().values(id_position=id_position, coin=coin, size=size,date_ask=date_ask, ask=ask,
-                                                 date_settlement=date_settlement, settlement=settlement,
+        clause = short_positions.insert().values(id_position=id_position,
+                                                 coin=coin,
+                                                 size_position=size_position,
+                                                 date_ask=date_ask,
+                                                 ask=ask,
+                                                 date_settlement=date_settlement,
+                                                 settlement=settlement,
                                                  source=source)
         result = con.execute(clause)
     except Exception:

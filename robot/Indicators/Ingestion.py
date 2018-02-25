@@ -126,16 +126,17 @@ def trend_market(date, coin, screen):
     vote_long = 0
     vote_short = 0
     if current_ema20 and base_ema20:
-        if current_ema20 - base_ema20 > 0:
+        if current_ema20 - base_ema20 > (len(ema_df) * 1.7 / 3):
             vote_long = 1
-        elif current_ema20 - base_ema20 < 0:
+        elif current_ema20 - base_ema20 < (len(ema_df) * 1.7 / 3):
             vote_long = -1
         else:
             vote_long = 0
+
     if current_ema5 and base_ema5:
-        if current_ema5 - base_ema5 > 0:
+        if current_ema5 - base_ema5 > (len(ema_df) * 1.7 / 3):
             vote_short = 1
-        elif current_ema5 - base_ema5 < 0:
+        elif current_ema5 - base_ema5 < (len(ema_df) * 1.7 / 3):
             vote_short = -1
         else:
             vote_short = 0

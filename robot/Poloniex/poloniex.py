@@ -1,5 +1,5 @@
 import urllib
-from urllib.request import urlopen, request
+from urllib import urlopen, request
 import json
 import time
 import hmac, hashlib

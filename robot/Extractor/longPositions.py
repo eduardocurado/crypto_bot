@@ -12,7 +12,7 @@ con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 long_positions = Table('Long', meta,
                        Column('id_position', Integer, primary_key=True),
                        Column('coin', String, primary_key=True),
-                       Column('size', Float),
+                       Column('size_position', Float),
                        Column('date_ask', DateTime),
                        Column('ask', Float),
                        Column('date_settlement', DateTime),
@@ -57,12 +57,12 @@ def get_positions(coin, status):
     return long_positions_df
 
 
-def insert_long(id_position, coin, size, date_ask, ask, date_settlement, settlement, take_profit,
+def insert_long(id_position, coin, size_position, date_ask, ask, date_settlement, settlement, take_profit,
                 stop_loss, status):
     try:
         clause = long_positions.insert().values(id_position=id_position,
                                                 coin=coin,
-                                                size=size,
+                                                size_position=size_position,
                                                 date_ask=date_ask,
                                                 ask=ask,
                                                 date_settlement=date_settlement,
@@ -75,16 +75,17 @@ def insert_long(id_position, coin, size, date_ask, ask, date_settlement, settlem
         print('Got error Long')
 
 
-def enter_positions(id_position, coin, size, date_ask, tick):
+def enter_positions(id_position, coin, size_position, date_ask, tick, take_profit, stop_loss):
     orders_book.create_order()
-    insert_long(id_position, coin, size, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                float(tick)+0.001, float(tick)*(1+0.05), float(tick)*(1-0.01), 'active')
+    insert_long(id_position, coin, size_position, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                float(tick), take_profit, stop_loss, 'active')
 
 
 def close_positions(id_position, coin):
     try:
         clause = long_positions.update(). \
-            where(and_(long_positions.c.id_position == id_position, long_positions.c.coin == coin)). \
+            where(and_(long_positions.c.id_position == id_position,
+                       long_positions.c.coin == coin)). \
             values(status='closed')
         result = con.execute(clause)
     except Exception:
@@ -96,13 +97,19 @@ def exit_positions(exits):
         date_ask = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ordered = orders_book.create_order()
         ordered = dict({'date_settlement': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        'settlement': (e.get('exit_price') - 0.001)})
+                        'settlement': (e.get('exit_price'))})
 
         long_id = get_longs(e.get('coin'), e.get('id')).iloc[0]
-        print(ordered.get('settlement') - long_id.settlement)
+        print((ordered.get('settlement') - long_id.settlement)/long_id.settlement)
         close_positions(e.get('id'), e.get('coin'))
-        shortPositions.insert_short(e.get('id'), e.get('coin'), e.get('size'), date_ask, e.get('exit_price'),
-                                    ordered.get('date_settlement'), ordered.get('settlement'), e.get('source'))
+        shortPositions.insert_short(e.get('id'),
+                                    e.get('coin'),
+                                    e.get('size_position'),
+                                    date_ask,
+                                    e.get('exit_price'),
+                                    ordered.get('date_settlement'),
+                                    ordered.get('settlement'),
+                                    e.get('source'))
 
 
 def update_take_profit():
