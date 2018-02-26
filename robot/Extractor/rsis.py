@@ -46,5 +46,6 @@ def insert_rsi(date, coin, rsi_value, screen):
         result = con.execute(clause)
         #                 print('Done.')
     except Exception:
-        print("Got error! RSI" + repr(Exception))
+        return
+        #print("Got error! RSI" + repr(Exception))
         #     print('Nothing Inserted')

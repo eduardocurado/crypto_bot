@@ -35,4 +35,4 @@ def insert_macd(date, coin, ema12, ema26, macd_line, signal_line, histogram, scr
                                   macd_line=macd_line, signal_line=signal_line, histogram=histogram, screen=screen)
         result = con.execute(clause)
     except Exception:
-        print('Got error MACD')
+        return

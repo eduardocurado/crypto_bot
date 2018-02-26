@@ -34,4 +34,5 @@ def insert_smas(date, coin, sma5, sma20, sma5_theta, screen):
         con.execute(clause)
         return
     except Exception:
-        print("Got error! SMA" + repr(Exception))
+        return
+        #print("Got error! SMA" + repr(Exception))

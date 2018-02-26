@@ -107,6 +107,7 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                            Column('settlement', Float),
                            Column('take_profit', Float),
                            Column('stop_loss', Float),
+                           Column('exit_price', Float),
                            Column('status', String)
                            )
     short_positions = Table('Short', meta,
@@ -123,23 +124,9 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                    Column('date', DateTime, primary_key=True),
                    Column('coin', String, primary_key=True),
                    Column('tick', Float),
-                   Column('signal', String, primary_key=True)
+                   Column('signal', String, primary_key=True),
+                   Column('signal_source', String, primary_key=True)
                    )
 
     meta.create_all(con)
     return con, meta
-
-
-def get_quandl_data(quandl_id):
-    '''Download and cache Quandl dataseries'''
-    cache_path = '{}.pkl'.format(quandl_id).replace('/', '-')
-    try:
-        f = open(cache_path, 'rb')
-        df = pickle.load(f)
-        print('Loaded {} from cache'.format(quandl_id))
-    except (OSError, IOError) as e:
-        print('Downloading {} from Quandl'.format(quandl_id))
-        df = quandl.get(quandl_id, returns="pandas")
-        df.to_pickle(cache_path)
-        print('Cached {} at {}'.format(quandl_id, cache_path))
-    return df

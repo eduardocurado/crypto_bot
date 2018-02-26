@@ -55,4 +55,4 @@ def insert_short(id_position, coin, size_position, date_ask, ask, date_settlemen
                                                  source=source)
         result = con.execute(clause)
     except Exception:
-        print('Got error Short')
+        return

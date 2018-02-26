@@ -9,17 +9,23 @@ signal = Table('Signal', meta,
     Column('date', DateTime, primary_key = True),
     Column('coin', String, primary_key = True),
     Column('tick', Float),
-    Column('signal', String, primary_key=True)
+    Column('signal', String, primary_key=True),
+    Column('signal_source', String, primary_key=True)
 )
 
 
-def insert_signal(date, coin, tick, signal_screen):
+def insert_signal(date, coin, tick, signal_screen, signal_source):
     try:
-        clause = signal.insert().values(date=date, coin=coin, tick=tick ,signal=signal_screen)
+        clause = signal.insert().values(date=date,
+                                        coin=coin,
+                                        tick=tick,
+                                        signal=signal_screen,
+                                        signal_source=signal_source)
         result = con.execute(clause)
         return
     except Exception:
-        print("Got error! Signal" + repr(Exception))
+        return
+        #print("Got error! Signal" + repr(Exception))
 
 
 def get_signal(n, coin, date):

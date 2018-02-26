@@ -30,7 +30,8 @@ def insert_tickers(date, coin, last, screen):
         clause = tickers.insert().values(date=date, coin=coin, price=last, screen=screen)
         con.execute(clause)
     except Exception:
-        print("Got error! Ticker")
+        return
+        #print("Got error! Ticker")
 
 
 def get_all_tickers(coin, screen):

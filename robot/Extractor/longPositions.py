@@ -19,6 +19,7 @@ long_positions = Table('Long', meta,
                        Column('settlement', Float),
                        Column('take_profit', Float),
                        Column('stop_loss', Float),
+                       Column('exit_price', Float),
                        Column('status', String)
                        )
 
@@ -48,7 +49,8 @@ def get_all_longs(coin):
 
 def get_positions(coin, status):
     s = select([long_positions]) \
-        .where(and_(long_positions.c.coin == coin, long_positions.c.status == status))\
+        .where(and_(long_positions.c.coin == coin,
+                    long_positions.c.status == status))\
         .order_by(desc(long_positions.c.date_ask))
     rows = con.execute(s)
     long_positions_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
@@ -72,7 +74,7 @@ def insert_long(id_position, coin, size_position, date_ask, ask, date_settlement
                                                 status=status)
         result = con.execute(clause)
     except Exception:
-        print('Got error Long')
+        return
 
 
 def enter_positions(id_position, coin, size_position, date_ask, tick, take_profit, stop_loss):
@@ -81,12 +83,13 @@ def enter_positions(id_position, coin, size_position, date_ask, tick, take_profi
                 float(tick), take_profit, stop_loss, 'active')
 
 
-def close_positions(id_position, coin):
+def close_positions(id_position, coin, tick):
     try:
         clause = long_positions.update(). \
             where(and_(long_positions.c.id_position == id_position,
                        long_positions.c.coin == coin)). \
-            values(status='closed')
+            values(status='closed',
+                   exit_price=tick)
         result = con.execute(clause)
     except Exception:
         print('Got error Close')
@@ -101,11 +104,15 @@ def exit_positions(exits):
 
         long_id = get_longs(e.get('coin'), e.get('id')).iloc[0]
         print((ordered.get('settlement') - long_id.settlement)/long_id.settlement)
-        close_positions(e.get('id'), e.get('coin'))
+        close_positions(e.get('id'),
+                        e.get('coin'),
+                        e.get('exit_price')
+                        )
+
         shortPositions.insert_short(e.get('id'),
                                     e.get('coin'),
                                     e.get('size_position'),
-                                    date_ask,
+                                    e.get('ask_date'),
                                     e.get('exit_price'),
                                     ordered.get('date_settlement'),
                                     ordered.get('settlement'),

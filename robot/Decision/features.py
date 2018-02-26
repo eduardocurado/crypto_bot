@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from robot.Decision import features
-from robot.Extractor import votes
+from robot.Extractor import votes, longPositions
 from robot.Indicators import Calculator, Ingestion
 from robot.Utils import services
 
@@ -32,6 +32,7 @@ def update_position():
     pass
 
 
-def update_balance():
+def update_balance(coin):
+    # open_positions = longPositions.get_positions(coin, 'active')
     pass
 

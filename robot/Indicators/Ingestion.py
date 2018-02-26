@@ -116,28 +116,52 @@ def get_macd_vote(date, coin, screen):
 
 
 def trend_market(date, coin, screen):
-    ema_df = emas.get_emas(10, coin, date, screen)
-    if len(ema_df) < 3:
-        return {'long_vote': 0, 'short_vote': 0}
-    base_ema20 = ema_df.iloc[len(ema_df) - 1].ema20
-    current_ema20 = ema_df.iloc[0].ema20
-    base_ema5 = ema_df.iloc[len(ema_df)-1].ema5
-    current_ema5 = ema_df.iloc[0].ema5
     vote_long = 0
     vote_short = 0
-    if current_ema20 and base_ema20:
-        if current_ema20 - base_ema20 > (len(ema_df) * 1.7 / 3):
+    ema_df = emas.get_emas(15, coin, date, screen)
+    if len(ema_df) < 15: #TODO: CHANGE VALUE 15 TO SMALLER ONE
+        return {'long_vote': vote_long, 'short_vote': vote_short}
+    current_ema20 = ema_df.iloc[0].ema20
+    current_ema5 = ema_df.iloc[0].ema5
+    base_ema20 = ema_df.iloc[len(ema_df) - 1].ema20
+    base_ema5 = ema_df.iloc[len(ema_df) - 1].ema5
+    dif_current = current_ema5 - current_ema20
+    dif20 = current_ema20 - base_ema20
+    dif5 = current_ema5 - base_ema5
+    if current_ema20 and current_ema5:
+        if dif_current > 0 and dif5 > 0:
             vote_long = 1
-        elif current_ema20 - base_ema20 < (len(ema_df) * 1.7 / 3):
+        elif dif_current < 0 and dif5 < 0:
             vote_long = -1
-        else:
-            vote_long = 0
 
-    if current_ema5 and base_ema5:
-        if current_ema5 - base_ema5 > (len(ema_df) * 1.7 / 3):
-            vote_short = 1
-        elif current_ema5 - base_ema5 < (len(ema_df) * 1.7 / 3):
-            vote_short = -1
-        else:
-            vote_short = 0
     return {'long_vote': vote_long, 'short_vote': vote_short}
+
+
+# def trend_market(date, coin, screen):
+#     vote_long = 0
+#     vote_short = 0
+#     ema_df = emas.get_emas(10, coin, date, screen)
+#     if len(ema_df) < 5:
+#         return {'long_vote': vote_long, 'short_vote': vote_short}
+#     base_ema20 = ema_df.iloc[len(ema_df) - 1].ema20
+#     current_ema20 = ema_df.iloc[0].ema20
+#     base_ema5 = ema_df.iloc[len(ema_df)-1].ema5
+#     current_ema5 = ema_df.iloc[0].ema5
+#     threshold = np.tan(10)*len(ema_df)
+#     dif = current_ema20 - base_ema20
+#     print('Dif and threshold')
+#     print(dif)
+#     print(threshold)
+#     if current_ema20 and base_ema20:
+#         if dif >= threshold:
+#             vote_long = 1
+#         elif dif <= - threshold:
+#             vote_long = -1
+#
+#     if current_ema5 and base_ema5:
+#         if dif >= threshold:
+#             vote_short = 1
+#         elif dif <= - threshold:
+#             vote_short = -1
+#
+#     return {'long_vote': vote_long, 'short_vote': vote_short}

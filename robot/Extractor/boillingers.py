@@ -24,7 +24,8 @@ def insert_boillingers(date, coin, upper_band, lower_band, sma20, height, screen
         #             print('Done.')
         return
     except Exception:
-        print("Got error! Boillinger" + repr(Exception))
+        return
+        #print("Got error! Boillinger" + repr(Exception))
 
 
 def get_boillinger(n, coin, date, screen):

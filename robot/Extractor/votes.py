@@ -23,7 +23,8 @@ def insert_votes(date, coin, vote_sma, vote_ema, vote_rsi, vote_boillinger, vote
                                        rsi=vote_rsi, boillinger=vote_boillinger, macd=vote_macd, screen=screen)
         con.execute(clause)
     except Exception:
-        print("Got error Votes! " + repr(Exception))
+        return
+        #print("Got error Votes! " + repr(Exception))
 
 
 def get_votes(n, coin, date, screen):
