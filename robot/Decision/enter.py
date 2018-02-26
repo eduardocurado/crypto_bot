@@ -5,8 +5,8 @@ from robot.Decision import exit
 
 def strategy_one(coin, date, tick):
     entry_sign = Ingestion.get_ema_vote(date, coin, 1)
-    vote_screen_one = Ingestion.trend_market(date, coin, 1)['long_vote']
-    vote_screen_two = Ingestion.trend_market(date, coin, 2)['long_vote']
+    vote_screen_one = trend_market(date, coin, 1)
+    vote_screen_two = trend_market(date, coin, 2)
     if vote_screen_one == 1 and vote_screen_two == 1 and entry_sign == 1:
         signals.insert_signal(date, coin, tick, 'BUY', 'ENTER_ONE')
         return {'signal': 'BUY',
@@ -35,9 +35,9 @@ def trend_market(date, coin, screen):
     dif5 = current_ema5 - base_ema5
     dif20 = current_ema20 - base_ema20
     if current_ema20 and current_ema5:
-        if dif_current > 0 and dif5 > 0 and dif20:
+        if dif_current > 0 and dif5 > 0 and dif20 > 0:
             vote = 1
-        elif dif_current < 0 and dif5 < 0 and dif20:
+        elif dif_current < 0 and dif5 < 0 and dif20 < 20:
             vote = -1
 
     return vote
@@ -46,8 +46,6 @@ def trend_market(date, coin, screen):
 def strategy_two(coin, date, tick):
     trend_one = trend_market(date, coin, 1)
     trend_two = trend_market(date, coin, 2)
-    if trend_two is None:
-        trend_two = trend_one
     ema = emas.get_emas(1, coin, date, 1)
     if not ema.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
