@@ -128,5 +128,14 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                    Column('signal_source', String, primary_key=True)
                    )
 
+    mkt_trend = Table('Market_trend', meta,
+                      Column('coin', String, primary_key=True),
+                      Column('date', DateTime, primary_key=True),
+                      Column('screen', String, primary_key=True),
+                      Column('dif_current', Float),
+                      Column('dif_base', Float),
+                      Column('vote', Integer)
+                      )
+
     meta.create_all(con)
     return con, meta

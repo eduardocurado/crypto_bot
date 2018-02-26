@@ -5,7 +5,7 @@ from robot.Utils import Initializations
 from robot.Decision import features, exit, enter
 from robot.Extractor import longPositions, tickers
 from robot.Assessment import signal_assessment
-from robot.Utils import services
+from robot.Utils import services, Plots
 
 
 def set_up_bd(coin, start):
@@ -25,7 +25,8 @@ def set_up_bd(coin, start):
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
     start = (datetime.now() - timedelta(days=45)).timestamp()
-    coin = 'BTC_ETH'
+    # coin = 'BTC_ETH'
+    coin = 'USDT_BTC'
     size_bd = set_up_bd(coin, start)
     print(size_bd)
     balance = 1
@@ -40,7 +41,7 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                                   initial_tick.date,
                                   initial_tick.price,
                                   initial_tick.price*(1+0.15),
-                                  initial_tick.price*(1-0.1))
+                                  initial_tick.price*(1-0.10))
     balance -= entry_size
     for index, row in tickers_df.iterrows():
         open_positions = longPositions.get_positions(coin, 'active')
@@ -61,7 +62,8 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
         TIME_DEFAULT_COUNT += 1
         if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL or not TIME_DEFAULT_COUNT % LONG_INTERVAL:
             if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL:
-                entry_sign_one = enter.strategy_one(coin, last_date, last_price)
+                # entry_sign_one = enter.strategy_one(coin, last_date, last_price)
+                entry_sign_one = None
                 entry_sign_two = enter.strategy_two(coin, last_date, last_price)
                 if entry_sign_one or entry_sign_two:
                     if entry_sign_two:
@@ -103,6 +105,7 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                                 longPositions.exit_positions(exits)
                                 features.update_balance(coin)
                                 balance += entry_size * len(exits)
+    Plots.plot()
 
 
 def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
@@ -154,7 +157,7 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                     features.update_balance(coin)
 
 
-TIME_DEFAULT = 5
+TIME_DEFAULT = 5 # MINUTOS
 INTERMEDIATE_INTERVAL = 20*TIME_DEFAULT  #S
 LONG_INTERVAL = 100*TIME_DEFAULT  # S
 main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL)
