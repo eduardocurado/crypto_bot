@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from sqlalchemy import Table, Column, Integer, DateTime, String, Float
 from sqlalchemy.sql import select, and_, desc
@@ -95,6 +96,17 @@ def close_positions(id_position, coin, tick):
         print('Got error Close')
 
 
+def update_position_stop_loss(id_position, coin, stop_loss):
+    try:
+        clause = long_positions.update(). \
+            where(and_(long_positions.c.id_position == id_position,
+                       long_positions.c.coin == coin)). \
+            values(stop_loss=stop_loss)
+        result = con.execute(clause)
+    except Exception:
+        print('Got error Close')
+
+
 def exit_positions(exits):
     for e in exits:
         date_ask = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -103,7 +115,7 @@ def exit_positions(exits):
                         'settlement': (e.get('exit_price'))})
 
         long_id = get_longs(e.get('coin'), e.get('id')).iloc[0]
-        print((ordered.get('settlement') - long_id.settlement)/long_id.settlement)
+        print(np.log(ordered.get('settlement')/long_id.settlement))
         close_positions(e.get('id'),
                         e.get('coin'),
                         e.get('exit_price')
@@ -124,6 +136,12 @@ def update_take_profit():
     pass
 
 
-def update_stop_loss():
+def update_stop_loss(coin, tick):
     # update open positions
-    pass
+    open_positions = get_positions(coin, 'active')
+    if not open_positions.empty:
+        for index, row in open_positions.iterrows():
+            new_stop_loss = max(tick * (1 - 0.05), row.stop_loss)
+            if new_stop_loss > row.stop_loss:
+                print('Updating Stop Loss')
+                update_position_stop_loss(row.id_position, coin, new_stop_loss)

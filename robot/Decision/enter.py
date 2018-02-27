@@ -1,7 +1,7 @@
 from sqlalchemy import Table, Column, Integer, String, Float, DateTime
 
 from robot.Decision import exit
-from robot.Extractor import signals, emas
+from robot.Extractor import signals, emas, tickers
 from robot.Indicators import Ingestion
 from robot.Utils import Initializations
 
@@ -31,7 +31,6 @@ def trend_market(date, coin):
     ema_df_two = emas.get_emas(5, coin, date, 2)
     if len(ema_df_one) < 2:
         return None
-
     current_ema20 = ema_df_one.iloc[0].ema20
     current_ema5 = ema_df_one.iloc[0].ema5
     dif_current = current_ema5 - current_ema20
@@ -99,11 +98,12 @@ def strategy_one(coin, date, tick):
 
 def strategy_two(coin, date, tick):
     trend_screen_one = trend_market(date, coin)
+    ticks = tickers.get_tickers(2, coin, date, 0)
     # trend_screen_two = trend_market(date, coin, 2)
     ema = emas.get_emas(1, coin, date, 1)
     if not ema.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
-        if ema.iloc[0].ema20 > tick > ema.iloc[0].ema20 * (1 - 0.1) and trend_screen_one == 1:
+        if ema.iloc[0].ema20 > ticks.iloc[0].price > ema.iloc[0].ema20 * (1 - 0.05) and ema.iloc[0].ema20 > ticks.iloc[1].price and trend_screen_one == 1:
             signals.insert_signal(date, coin, tick, 'BUY', 'ENTER_TWO')
             return {'signal': 'BUY',
                     'take_profit': exit_points.get('take_profit'),

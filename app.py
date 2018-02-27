@@ -24,7 +24,7 @@ def set_up_bd(coin, start):
 
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    start = (datetime.now() - timedelta(days=45)).timestamp()
+    start = (datetime.now() - timedelta(days=55)).timestamp()
     # coin = 'BTC_ETH'
     coin = 'USDT_BTC'
     size_bd = set_up_bd(coin, start)
@@ -34,15 +34,15 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     start = datetime.now()
     print(start)
     tickers_df = tickers.get_all_tickers(coin, 0)
-    initial_tick = tickers_df.iloc[0]
-    longPositions.enter_positions(TIME_DEFAULT_COUNT,
-                                  coin,
-                                  entry_size,
-                                  initial_tick.date,
-                                  initial_tick.price,
-                                  initial_tick.price*(1+0.15),
-                                  initial_tick.price*(1-0.10))
-    balance -= entry_size
+    # initial_tick = tickers_df.iloc[0]
+    # longPositions.enter_positions(TIME_DEFAULT_COUNT,
+    #                               coin,
+    #                               entry_size,
+    #                               initial_tick.date,
+    #                               initial_tick.price,
+    #                               initial_tick.price*(1+0.15),
+    #                               initial_tick.price*(1-0.10))
+    # balance -= entry_size
     for index, row in tickers_df.iterrows():
         open_positions = longPositions.get_positions(coin, 'active')
         last_date = row.date.strftime("%Y-%m-%d %H:%M:%S")
@@ -56,8 +56,8 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                 longPositions.exit_positions(exits)
                 features.update_balance(coin)
                 balance += entry_size * len(exits)
-                longPositions.update_stop_loss()
-                longPositions.update_take_profit()
+            else:
+                longPositions.update_stop_loss(coin, last_price)
 
         TIME_DEFAULT_COUNT += 1
         if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL or not TIME_DEFAULT_COUNT % LONG_INTERVAL:
@@ -124,7 +124,6 @@ def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
         print(tick)
         open_positions = longPositions.get_positions(coin, 'active')
         if not open_positions.empty:
-            print('Has open position')
             exits = exit.strategy_one(tick, last_date, coin, open_positions)
             if exits:
                 print('EXITING POSITION')

@@ -69,13 +69,14 @@ def calculate_boillinger(date, coin, screen):
     if len(tickers_df) >= 20:
         sma20 = tickers_df.iloc[(len(tickers_df) - 20):len(tickers_df)].price.mean()
         std20 = tickers_df.iloc[(len(tickers_df) - 20):len(tickers_df)].price.std()
+        ema20 = emas.get_emas(1, coin, date, screen).iloc[0].ema20
         # upper_band = sma20 + 2 * std20
         # lower_band = sma20 - 2 * std20]
         #TODO: CHANGE PERCENTAGE TO A LIL BIT BIGGER
-        upper_band = sma20 * (1 + 0.05)
-        lower_band = sma20 * (1 - 0.05)
+        upper_band = ema20 * (1 + 0.15)
+        lower_band = ema20 * (1 - 0.15)
         height = upper_band - lower_band
-        boillingers.insert_boillingers(date, coin, upper_band, lower_band, sma20, height, screen)
+        boillingers.insert_boillingers(date, coin, upper_band, lower_band, ema20, height, screen)
 
 
 def calculate_macd(date, coin, screen):
