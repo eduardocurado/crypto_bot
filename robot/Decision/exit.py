@@ -35,5 +35,5 @@ def get_exit_channel(coin, date, tick, screen):
                 'stop_loss': 0}
     take_profit = 0.2
     log_return_band = np.log(boillingers_df.iloc[0].upper_band/tick)
-    return {'take_profit': min(take_profit, log_return_band),
+    return {'take_profit': min(take_profit, log_return_band) * tick,
             'stop_loss': tick * (1 - 0.05)}
