@@ -141,7 +141,6 @@ def update_stop_loss(coin, tick):
     open_positions = get_positions(coin, 'active')
     if not open_positions.empty:
         for index, row in open_positions.iterrows():
-            new_stop_loss = max(tick * (1 - 0.05), row.stop_loss)
+            new_stop_loss = max(tick * (1 - 0.1), row.stop_loss)
             if new_stop_loss > row.stop_loss:
-                print('Updating Stop Loss')
                 update_position_stop_loss(row.id_position, coin, new_stop_loss)

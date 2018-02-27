@@ -1,7 +1,7 @@
-import quandl
-import pickle
+from datetime import datetime
 import sqlalchemy
 from sqlalchemy import Table, Column, Integer, DateTime, String, Float
+from robot.Poloniex import feeder
 
 
 def connect_db(user, password, db, host='localhost', port=5432):
@@ -139,3 +139,34 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
 
     meta.create_all(con)
     return con, meta
+
+
+def create_backup(days):
+    import os
+
+    os.system('pg_dump -U postgres robotdb -f dump_' + str(days) + '.backup')
+    print ("backup_successfull")
+
+def set_up_bd(coin, start):
+    start_timer = datetime.now()
+    print('Setting up BD')
+    drop_all_tables('postgres', '', 'robotdb')
+    create_all_tables('postgres', '', 'robotdb')
+    print('Feeding base data')
+    size_historical = feeder.get_historical_data(coin, start)
+    print('Feeding screen 1')
+    feeder.get_historical_screen(4, coin, 1)
+    print('Feeding screen 2')
+    feeder.get_historical_screen(24, coin, 2)
+    print('Creating Backup')
+    create_backup()
+    return size_historical
+
+def restore_backup(days):
+    from pathlib import Path
+
+    file_path = Path('dump_' + str(days) + '.backup')
+    if file_path.exists():
+        pg_restore - U < username > -d < dbname > -1 < filename >.dump
+        print('restoring')
+    else:

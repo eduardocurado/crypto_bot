@@ -8,26 +8,12 @@ from robot.Assessment import signal_assessment
 from robot.Utils import services, Plots
 
 
-def set_up_bd(coin, start):
-    start_timer = datetime.now()
-    print('Setting up BD')
-    Initializations.drop_all_tables('postgres', '', 'robotdb')
-    Initializations.create_all_tables('postgres', '', 'robotdb')
-    print('Feeding base data')
-    size_historical = feeder.get_historical_data(coin, start)
-    print('Feeding screen 1')
-    feeder.get_historical_screen(4, coin, 1)
-    print('Feeding screen 2')
-    feeder.get_historical_screen(24, coin, 2)
-    return size_historical
-
-
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    start = (datetime.now() - timedelta(days=55)).timestamp()
+    start = (datetime.now() - timedelta(days=2)).timestamp()
     # coin = 'BTC_ETH'
     coin = 'USDT_BTC'
-    size_bd = set_up_bd(coin, start)
+    size_bd = Initializations.set_up_bd(coin, start)
     print(size_bd)
     balance = 1
     entry_size = balance / 10
@@ -105,7 +91,6 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                                 longPositions.exit_positions(exits)
                                 features.update_balance(coin)
                                 balance += entry_size * len(exits)
-    Plots.plot()
 
 
 def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
