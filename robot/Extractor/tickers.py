@@ -37,20 +37,30 @@ def insert_tickers(date, coin, last, screen):
 def get_all_tickers_screen(coin, screen):
     s = select([tickers]) \
         .where(and_(tickers.c.coin == coin, tickers.c.screen == screen)) \
-        .order_by(
-        desc(tickers.c.date))
-    rows = con.execute(s)
-    tickers_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
-    if not tickers_df.empty:
-        tickers_df.columns = rows.keys()
-    return tickers_df
-
-
-def get_all_tickers():
-    s = select([tickers])\
         .order_by(desc(tickers.c.date))
     rows = con.execute(s)
     tickers_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
     if not tickers_df.empty:
         tickers_df.columns = rows.keys()
     return tickers_df
+
+
+def get_all_tickers(screen):
+    s = select([tickers]) \
+        .where(and_(tickers.c.screen == screen)) \
+        .order_by(desc(tickers.c.date))
+    rows = con.execute(s)
+    tickers_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
+    if not tickers_df.empty:
+        tickers_df.columns = rows.keys()
+    return tickers_df
+
+
+def get_ticker(coin, date, screen):
+    s = select([tickers]) \
+        .where(and_(tickers.c.coin == coin, tickers.c.date == date, tickers.c.screen == screen))
+    rows = con.execute(s)
+    tickers_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
+    if not tickers_df.empty:
+        return True
+    return False

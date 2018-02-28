@@ -46,6 +46,7 @@ def channel_strategy(coin, date, tick):
 
 
 def strategy_two(coin, date, tick):
+
     trend_screen_one = market_trend.trend_market(date, coin)
     ticks = tickers.get_tickers(2, coin, date, 0)
     # trend_screen_two = trend_market(date, coin, 2)

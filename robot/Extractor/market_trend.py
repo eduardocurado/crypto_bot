@@ -10,14 +10,16 @@ mkt_trend = Table('Market_trend', meta,
                   Column('screen', Integer, primary_key=True),
                   Column('dif_current', Float),
                   Column('dif_base', Float),
+                  Column('delta_dif', Float),
                   Column('vote', Integer)
                   )
 
 
-def insert_trend(coin, date, screen, dif_current, dif_base, vote):
+def insert_trend(coin, date, screen, dif_current, dif_base, delta_dif, vote):
     try:
         clause = mkt_trend.insert().values(coin=coin, date=date, screen=screen,
-                                           dif_current=dif_current, dif_base=dif_base, vote=vote)
+                                           dif_current=dif_current, dif_base=dif_base,
+                                           vote=vote, delta_dif=delta_dif)
         result = con.execute(clause)
     except Exception:
         return
@@ -29,7 +31,6 @@ def trend_market(date, coin):
     ema_df_two = emas.get_emas(5, coin, date, 2)
     if len(ema_df_one) < 2:
         return None
-
     current_ema20 = ema_df_one.iloc[0].ema20
     current_ema5 = ema_df_one.iloc[0].ema5
     dif_current = (current_ema5 - current_ema20)/current_ema20
@@ -39,16 +40,18 @@ def trend_market(date, coin):
     dif_base = (base_ema5 - base_ema20)/base_ema20
 
     if dif_current > 0.035:
+        delta_dif = dif_current - dif_base
         if dif_base < 0:
             vote = 1
-        elif dif_current > dif_base:
+        elif dif_current - dif_base > 0:
             vote = 1
 
     if dif_current < -0.035:
+        delta_dif = dif_current - dif_base
         if dif_base > 0:
             vote = -1
-        elif abs(dif_current) > abs(dif_base):
+        elif dif_current - dif_base < 0:
             vote = -1
-    insert_trend(coin, date, 1, dif_current, dif_base, vote)
+    insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, vote)
 
     return vote

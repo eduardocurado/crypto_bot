@@ -138,6 +138,7 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                       Column('screen', Integer, primary_key=True),
                       Column('dif_current', Float),
                       Column('dif_base', Float),
+                      Column('delta_dif', Float),
                       Column('vote', Integer)
                       )
 
