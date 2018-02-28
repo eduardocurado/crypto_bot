@@ -20,7 +20,9 @@ long_positions = Table('Long', meta,
                        Column('settlement', Float),
                        Column('take_profit', Float),
                        Column('stop_loss', Float),
+                       Column('exit_date', DateTime),
                        Column('exit_price', Float),
+                       Column('log_return', Float),
                        Column('status', String)
                        )
 
@@ -84,24 +86,26 @@ def enter_positions(id_position, coin, size_position, date_ask, tick, take_profi
                 float(tick), take_profit, stop_loss, 'active')
 
 
-def close_positions(id_position, coin, tick):
-    try:
-        clause = long_positions.update(). \
-            where(and_(long_positions.c.id_position == id_position,
-                       long_positions.c.coin == coin)). \
-            values(status='closed',
-                   exit_price=tick)
-        result = con.execute(clause)
-    except Exception:
-        print('Got error Close')
-
-
 def update_position_stop_loss(id_position, coin, stop_loss):
     try:
         clause = long_positions.update(). \
             where(and_(long_positions.c.id_position == id_position,
                        long_positions.c.coin == coin)). \
             values(stop_loss=stop_loss)
+        result = con.execute(clause)
+    except Exception:
+        print('Got error Close')
+
+
+def close_positions(id_position, coin, tick, exit_date, log_return):
+    try:
+        clause = long_positions.update(). \
+            where(and_(long_positions.c.id_position == id_position,
+                       long_positions.c.coin == coin)). \
+            values(status='closed',
+                   exit_date=exit_date,
+                   exit_price=tick,
+                   log_return=log_return)
         result = con.execute(clause)
     except Exception:
         print('Got error Close')
@@ -115,11 +119,9 @@ def exit_positions(exits):
                         'settlement': (e.get('exit_price'))})
 
         long_id = get_longs(e.get('coin'), e.get('id')).iloc[0]
-        print(np.log(ordered.get('settlement')/long_id.settlement))
-        close_positions(e.get('id'),
-                        e.get('coin'),
-                        e.get('exit_price')
-                        )
+        log_return = np.log(ordered.get('settlement')/long_id.settlement)
+        print(log_return)
+        close_positions(e.get('id'), e.get('coin'), e.get('exit_price'), e.get('ask_date'), log_return)
 
         shortPositions.insert_short(e.get('id'),
                                     e.get('coin'),

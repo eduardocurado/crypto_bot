@@ -17,13 +17,8 @@ def strategy_one(tick, date, coin, open_positions):
                           })
             signals.insert_signal(date, coin, tick, 'SELL', 'EXIT_ONE')
         elif float(tick) <= stop_loss:
-            exits.append({'id': row.id_position,
-                          'coin': coin,
-                          'source': "stop_loss",
-                          'exit_price': float(tick),
-                          'ask_date': date,
-                          'size_position': row.size_position
-                          })
+            exits.append({'id': row.id_position, 'coin': coin, 'source': "stop_loss", 'exit_price': float(tick),
+                          'ask_date': date, 'size_position': row.size_position})
             signals.insert_signal(date, coin, tick, 'SELL', 'EXIT_ONE')
     return exits
 

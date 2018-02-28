@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlalchemy
 from sqlalchemy import Table, Column, Integer, DateTime, String, Float
 from robot.Poloniex import feeder
@@ -107,9 +107,12 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                            Column('settlement', Float),
                            Column('take_profit', Float),
                            Column('stop_loss', Float),
+                           Column('exit_date', DateTime),
                            Column('exit_price', Float),
+                           Column('log_return', Float),
                            Column('status', String)
                            )
+
     short_positions = Table('Short', meta,
                             Column('id_position', Integer, primary_key=True),
                             Column('coin', String, primary_key=True),
@@ -131,27 +134,46 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
     mkt_trend = Table('Market_trend', meta,
                       Column('coin', String, primary_key=True),
                       Column('date', DateTime, primary_key=True),
-                      Column('screen', String, primary_key=True),
+                      Column('screen', Integer, primary_key=True),
                       Column('dif_current', Float),
                       Column('dif_base', Float),
                       Column('vote', Integer)
                       )
 
-    meta.create_all(con)
     return con, meta
+
+
+def restore_backup(days):
+    from pathlib import Path
+    import os
+
+    file_path = Path('dump_' + str(days) + '.backup')
+    if file_path.exists():
+        os.system('psql -U postgres -d robotdb < dump_' + str(days) + '.backup')
+        print('restoring')
+        return True
+    else:
+        return False
 
 
 def create_backup(days):
     import os
 
     os.system('pg_dump -U postgres robotdb -f dump_' + str(days) + '.backup')
-    print ("backup_successfull")
+    print("backup_successfull")
 
-def set_up_bd(coin, start):
-    start_timer = datetime.now()
-    print('Setting up BD')
+
+def set_up_bd(coin, days):
     drop_all_tables('postgres', '', 'robotdb')
-    create_all_tables('postgres', '', 'robotdb')
+    restored = restore_backup(days)
+    if restored:
+        create_all_tables('postgres', '', 'robotdb')
+        return 0
+    con, meta = create_all_tables('postgres', '', 'robotdb')
+    meta.create_all(con)
+    start = (datetime.now() - timedelta(days=days)).timestamp()
+    print('Setting up BD')
+
     print('Feeding base data')
     size_historical = feeder.get_historical_data(coin, start)
     print('Feeding screen 1')
@@ -159,14 +181,5 @@ def set_up_bd(coin, start):
     print('Feeding screen 2')
     feeder.get_historical_screen(24, coin, 2)
     print('Creating Backup')
-    create_backup()
+    create_backup(days)
     return size_historical
-
-def restore_backup(days):
-    from pathlib import Path
-
-    file_path = Path('dump_' + str(days) + '.backup')
-    if file_path.exists():
-        pg_restore - U < username > -d < dbname > -1 < filename >.dump
-        print('restoring')
-    else:

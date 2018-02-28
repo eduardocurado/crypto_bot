@@ -10,10 +10,10 @@ from robot.Utils import services, Plots
 
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    start = (datetime.now() - timedelta(days=2)).timestamp()
     # coin = 'BTC_ETH'
     coin = 'USDT_BTC'
-    size_bd = Initializations.set_up_bd(coin, start)
+    days = 60
+    size_bd = Initializations.set_up_bd(coin, days)
     print(size_bd)
     balance = 1
     entry_size = balance / 10
@@ -45,6 +45,8 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             else:
                 longPositions.update_stop_loss(coin, last_price)
 
+        if index < 30:
+            continue
         TIME_DEFAULT_COUNT += 1
         if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL or not TIME_DEFAULT_COUNT % LONG_INTERVAL:
             if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL:
