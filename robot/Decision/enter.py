@@ -52,7 +52,7 @@ def strategy_two(coin, date, tick):
     ema = emas.get_emas(1, coin, date, 1)
     if not ema.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
-        if ema.iloc[0].ema5 > ticks.iloc[0].price > ema.iloc[0].ema5 * (1 - 0.05) and ema.iloc[0].ema5 > ticks.iloc[1].price and trend_screen_one == 1:
+        if ema.iloc[0].ema5 > ticks.iloc[0].price > ema.iloc[0].ema5 * (1 - 0.1) and ema.iloc[0].ema5 > ticks.iloc[1].price and trend_screen_one == 1:
             signals.insert_signal(date, coin, tick, 'BUY', 'ENTER_TWO')
             return {'signal': 'BUY',
                     'take_profit': exit_points.get('take_profit'),

@@ -123,6 +123,7 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                             Column('settlement', Float),
                             Column('source', String)
                             )
+
     signal = Table('Signal', meta,
                    Column('date', DateTime, primary_key=True),
                    Column('coin', String, primary_key=True),
@@ -163,23 +164,24 @@ def create_backup(days):
     print("backup_successfull")
 
 
-def set_up_bd(coin, days):
-    drop_all_tables('postgres', '', 'robotdb')
-    restored = restore_backup(days)
-    if restored:
-        create_all_tables('postgres', '', 'robotdb')
-        return 0
-    con, meta = create_all_tables('postgres', '', 'robotdb')
-    meta.create_all(con)
+def feed_historical_data(coin, days):
     start = (datetime.now() - timedelta(days=days)).timestamp()
-    print('Setting up BD')
-
     print('Feeding base data')
     size_historical = feeder.get_historical_data(coin, start)
     print('Feeding screen 1')
     feeder.get_historical_screen(4, coin, 1)
     print('Feeding screen 2')
     feeder.get_historical_screen(24, coin, 2)
-    print('Creating Backup')
-    create_backup(days)
+
     return size_historical
+
+
+def set_up_bd(days):
+    drop_all_tables('postgres', '', 'robotdb')
+    restored = restore_backup(days)
+    if restored:
+        create_all_tables('postgres', '', 'robotdb')
+        return True
+    con, meta = create_all_tables('postgres', '', 'robotdb')
+    meta.create_all(con)
+    return False

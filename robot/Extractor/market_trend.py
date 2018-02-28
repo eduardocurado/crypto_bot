@@ -38,13 +38,13 @@ def trend_market(date, coin):
     base_ema5 = ema_df_one.iloc[1].ema5
     dif_base = (base_ema5 - base_ema20)/base_ema20
 
-    if dif_current > 0.03:
+    if dif_current > 0.035:
         if dif_base < 0:
             vote = 1
         elif dif_current > dif_base:
             vote = 1
 
-    if dif_current < -0.03:
+    if dif_current < -0.035:
         if dif_base > 0:
             vote = -1
         elif abs(dif_current) > abs(dif_base):

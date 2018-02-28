@@ -58,7 +58,7 @@ def get_tick_interval(coin, last_date, interval):
 
 def get_historical_screen(interval, coin, screen):
     x = 0
-    tickers_df = tickers.get_all_tickers(coin, 0)
+    tickers_df = tickers.get_all_tickers_screen(coin, 0)
     for index, row in tickers_df.iterrows():
         x += 1
         if not (x % (interval*12)):

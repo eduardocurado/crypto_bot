@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 import time
+
+import pandas as pd
 from robot.Poloniex import feeder
 from robot.Utils import Initializations
 from robot.Decision import features, exit, enter
@@ -11,15 +13,22 @@ from robot.Utils import services, Plots
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
     # coin = 'BTC_ETH'
-    coin = 'USDT_BTC'
+    coins = ['USDT_BTC', 'USDT_LTC']
     days = 60
-    size_bd = Initializations.set_up_bd(coin, days)
-    print(size_bd)
     balance = 1
     entry_size = balance / 10
-    start = datetime.now()
-    print(start)
-    tickers_df = tickers.get_all_tickers(coin, 0)
+    tickers_dfs = []
+    restored = Initializations.set_up_bd(days)
+
+    if not restored:
+        for coin in coins:
+            size_bd = Initializations.feed_historical_data(coin, days)
+            print(size_bd)
+            tickers_dfs.append(tickers.get_all_tickers_screen(coin, 0))
+            tickers_df = pd.concat(tickers_dfs)
+        Initializations.create_backup(days)
+
+    tickers_df = tickers.get_all_tickers()
     # initial_tick = tickers_df.iloc[0]
     # longPositions.enter_positions(TIME_DEFAULT_COUNT,
     #                               coin,
@@ -29,10 +38,13 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     #                               initial_tick.price*(1+0.15),
     #                               initial_tick.price*(1-0.10))
     # balance -= entry_size
+
     for index, row in tickers_df.iterrows():
-        open_positions = longPositions.get_positions(coin, 'active')
         last_date = row.date.strftime("%Y-%m-%d %H:%M:%S")
         last_price = row.price
+        coin = row.coin
+        open_positions = longPositions.get_positions(coin, 'active')
+
         if not open_positions.empty:
             exits = exit.strategy_one(last_price, last_date, coin, open_positions)
             if exits:
