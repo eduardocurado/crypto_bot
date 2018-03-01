@@ -7,7 +7,7 @@ def set_take_profit():
 
 
 def set_stop_loss():
-    return 0.06
+    return 0.05
 
 
 def strategy_one(tick, date, coin, open_positions):

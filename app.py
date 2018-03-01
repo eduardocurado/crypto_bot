@@ -24,8 +24,8 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             print(size_bd)
         Initializations.create_backup(days)
 
-    tickers_df = tickers.get_all_tickers(0)
-
+    # tickers_df = tickers.get_all_tickers(0)
+    tickers_df = tickers.get_all_tickers_screen('USDT_BTC', 0)
     for index, row in tickers_df.iterrows():
         last_date = row.date.strftime("%Y-%m-%d %H:%M:%S")
         last_price = row.price
@@ -48,20 +48,22 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             continue
         TIME_DEFAULT_COUNT += 1
         if tickers.get_ticker(coin, last_date, 1):
-            entry_sign_one = enter.cross_over_strategy(coin, last_date, last_price)
-            entry_sign_two = enter.channel_strategy(coin, last_date, last_price)
-            entry_sign_three = enter.rsi_strategy(coin, last_date, last_price)
-            # entry_sign_two = None
-            if entry_sign_one or entry_sign_two or entry_sign_three:
-                if entry_sign_two:
+            cross_over = None
+            channel = None
+            rsi = None
+            #cross_over = enter.cross_over_strategy(coin, last_date, last_price)
+            channel = enter.channel_strategy(coin, last_date, last_price)
+            #rsi = enter.rsi_strategy(coin, last_date, last_price)
+            if channel or cross_over or rsi:
+                if channel:
                     strategy = 'CHANNEL'
-                    entry_sign = entry_sign_two
-                elif entry_sign_three:
+                    entry_sign = channel
+                elif rsi:
                     strategy = 'RSI'
-                    entry_sign = entry_sign_three
-                else:
+                    entry_sign = rsi
+                elif cross_over:
                     strategy = 'CROSS_OVER'
-                    entry_sign = entry_sign_one
+                    entry_sign = cross_over
 
                 if entry_sign.get('signal') == 'BUY':
                     if signal_assessment.assignment_buy(balance):

@@ -43,7 +43,7 @@ def trend_market(date, coin):
         if delta_dif > 0:
             vote = 1
 
-    if dif_current < 0.05:
+    if dif_current < -0.05:
         if dif_base > 0:
             vote = -1
         elif delta_dif < 0:
