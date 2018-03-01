@@ -8,7 +8,7 @@ def assignment_sell(coin):
     return True
 
 
-def assignment_buy(coin, balance):
+def assignment_buy(balance):
     if balance:
         return True
     return False

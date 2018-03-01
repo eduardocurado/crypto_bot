@@ -5,7 +5,7 @@ from sqlalchemy import Table, Column, Integer, DateTime, String, Float
 from sqlalchemy.sql import select, and_, desc
 
 from robot.Utils import Initializations
-from robot.Decision import features
+from robot.Decision import features, exit
 from robot.Extractor import orders_book, shortPositions
 
 
@@ -13,6 +13,7 @@ con, meta = Initializations.connect_db('postgres', '', 'robotdb')
 long_positions = Table('Long', meta,
                        Column('id_position', Integer, primary_key=True),
                        Column('coin', String, primary_key=True),
+                       Column('strategy', String),
                        Column('size_position', Float),
                        Column('date_ask', DateTime),
                        Column('ask', Float),
@@ -62,11 +63,12 @@ def get_positions(coin, status):
     return long_positions_df
 
 
-def insert_long(id_position, coin, size_position, date_ask, ask, date_settlement, settlement, take_profit,
+def insert_long(id_position, coin, strategy, size_position, date_ask, ask, date_settlement, settlement, take_profit,
                 stop_loss, status):
     try:
         clause = long_positions.insert().values(id_position=id_position,
                                                 coin=coin,
+                                                strategy=strategy,
                                                 size_position=size_position,
                                                 date_ask=date_ask,
                                                 ask=ask,
@@ -80,9 +82,9 @@ def insert_long(id_position, coin, size_position, date_ask, ask, date_settlement
         return
 
 
-def enter_positions(id_position, coin, size_position, date_ask, tick, take_profit, stop_loss):
+def enter_positions(id_position, coin, strategy, size_position, date_ask, tick, take_profit, stop_loss):
     orders_book.create_order()
-    insert_long(id_position, coin, size_position, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    insert_long(id_position, coin, strategy, size_position, date_ask, tick, datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 float(tick), take_profit, stop_loss, 'active')
 
 
@@ -143,6 +145,6 @@ def update_stop_loss(coin, tick):
     open_positions = get_positions(coin, 'active')
     if not open_positions.empty:
         for index, row in open_positions.iterrows():
-            new_stop_loss = max(tick * (1 - 0.1), row.stop_loss)
+            new_stop_loss = max(tick * (1 - exit.set_stop_loss()), row.stop_loss)
             if new_stop_loss > row.stop_loss:
                 update_position_stop_loss(row.id_position, coin, new_stop_loss)

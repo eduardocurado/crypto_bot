@@ -38,19 +38,15 @@ def trend_market(date, coin):
     base_ema20 = ema_df_one.iloc[1].ema20
     base_ema5 = ema_df_one.iloc[1].ema5
     dif_base = (base_ema5 - base_ema20)/base_ema20
-
-    if dif_current > 0.035:
-        delta_dif = dif_current - dif_base
-        if dif_base < 0:
-            vote = 1
-        elif dif_current - dif_base > 0:
+    delta_dif = dif_current - dif_base
+    if dif_current > 0.05:
+        if delta_dif > 0:
             vote = 1
 
-    if dif_current < -0.035:
-        delta_dif = dif_current - dif_base
+    if dif_current < 0.05:
         if dif_base > 0:
             vote = -1
-        elif dif_current - dif_base < 0:
+        elif delta_dif < 0:
             vote = -1
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, vote)
 

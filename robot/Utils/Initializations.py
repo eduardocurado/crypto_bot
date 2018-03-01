@@ -100,6 +100,7 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
     long_positions = Table('Long', meta,
                            Column('id_position', Integer, primary_key=True),
                            Column('coin', String, primary_key=True),
+                           Column('strategy', String),
                            Column('size_position', Float),
                            Column('date_ask', DateTime),
                            Column('ask', Float),
@@ -151,8 +152,8 @@ def restore_backup(days):
 
     file_path = Path('dump_' + str(days) + '.backup')
     if file_path.exists():
-        os.system('psql -U postgres -d robotdb < dump_' + str(days) + '.backup')
-        print('restoring')
+        os.system('psql -U postgres -d robotdb < dump_' + str(days) + '.backup >/dev/null 2>&1')
+        print('Restoring DB ...')
         return True
     else:
         return False

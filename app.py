@@ -12,32 +12,19 @@ from robot.Utils import services, Plots
 
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    # coin = 'BTC_ETH'
     coins = ['USDT_BTC', 'USDT_LTC']
     days = 55
-    balance = 1
+    balance = 500
     entry_size = balance / 10
-    tickers_dfs = []
     restored = Initializations.set_up_bd(days)
 
     if not restored:
         for coin in coins:
             size_bd = Initializations.feed_historical_data(coin, days)
             print(size_bd)
-            tickers_dfs.append(tickers.get_all_tickers_screen(coin, 0))
-            tickers_dfs = pd.concat(tickers_dfs)
         Initializations.create_backup(days)
 
-    tickers_df = tickers.get_all_tickers(1)
-    # initial_tick = tickers_df.iloc[0]
-    # longPositions.enter_positions(TIME_DEFAULT_COUNT,
-    #                               coin,
-    #                               entry_size,
-    #                               initial_tick.date,
-    #                               initial_tick.price,
-    #                               initial_tick.price*(1+0.15),
-    #                               initial_tick.price*(1-0.10))
-    # balance -= entry_size
+    tickers_df = tickers.get_all_tickers(0)
 
     for index, row in tickers_df.iterrows():
         last_date = row.date.strftime("%Y-%m-%d %H:%M:%S")
@@ -61,21 +48,28 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             continue
         TIME_DEFAULT_COUNT += 1
         if tickers.get_ticker(coin, last_date, 1):
-            # entry_sign_one = enter.strategy_one(coin, last_date, last_price)
-            entry_sign_one = None
-            entry_sign_two = enter.strategy_two(coin, last_date, last_price)
-            if entry_sign_one or entry_sign_two:
+            entry_sign_one = enter.cross_over_strategy(coin, last_date, last_price)
+            entry_sign_two = enter.channel_strategy(coin, last_date, last_price)
+            entry_sign_three = enter.rsi_strategy(coin, last_date, last_price)
+            # entry_sign_two = None
+            if entry_sign_one or entry_sign_two or entry_sign_three:
                 if entry_sign_two:
+                    strategy = 'CHANNEL'
                     entry_sign = entry_sign_two
+                elif entry_sign_three:
+                    strategy = 'RSI'
+                    entry_sign = entry_sign_three
                 else:
+                    strategy = 'CROSS_OVER'
                     entry_sign = entry_sign_one
 
                 if entry_sign.get('signal') == 'BUY':
-                    if signal_assessment.assignment_buy(coin, balance):
+                    if signal_assessment.assignment_buy(balance):
                         print('BUY')
                         services.execute_order()
                         longPositions.enter_positions(TIME_DEFAULT_COUNT,
                                                       coin,
+                                                      strategy,
                                                       entry_size,
                                                       last_date,
                                                       last_price,

@@ -2,6 +2,14 @@ import numpy as np
 from robot.Extractor import signals, boillingers
 
 
+def set_take_profit():
+    return 0.2
+
+
+def set_stop_loss():
+    return 0.06
+
+
 def strategy_one(tick, date, coin, open_positions):
     exits = []
     for index, row in open_positions.iterrows():
@@ -28,7 +36,6 @@ def get_exit_channel(coin, date, tick, screen):
     if boillingers_df.empty:
         return {'take_profit': 0,
                 'stop_loss': 0}
-    take_profit = 0.2
     log_return_band = np.log(boillingers_df.iloc[0].upper_band/tick)
-    return {'take_profit': (min(take_profit, log_return_band) + 1) * tick,
-            'stop_loss': tick * (1 - 0.05)}
+    return {'take_profit': (min(set_take_profit(), log_return_band) + 1) * tick,
+            'stop_loss': tick * (1 - set_stop_loss())}

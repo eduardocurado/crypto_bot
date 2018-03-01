@@ -1,52 +1,72 @@
 from robot.Decision import exit
-from robot.Extractor import signals, emas, tickers, market_trend
+from robot.Extractor import signals, emas, tickers, market_trend, rsis
 from robot.Indicators import Ingestion
 
 
-def strategy_one(coin, date, tick):
-    entry_sign = Ingestion.get_ema_vote(date, coin, 1)
+def cross_over_strategy(coin, date, tick):
     trend_screen_one = market_trend.trend_market(date, coin)
-    # trend_screen_two = trend_market(date, coin, 2)
-    if trend_screen_one == 1 and entry_sign == 1:
-        signals.insert_signal(date, coin, tick, 'BUY', 'ENTER_ONE')
-        return {'signal': 'BUY',
-                'take_profit': tick * (1 + 0.2),
-                'stop_loss': tick * (1 - 0.1)}
-    # elif vote_screen_one == -1 and vote_screen_two == -1 and entry_sign == -1:
-    #     signals.insert_signal(date, coin, tick, 'SELL', 'ENTER_ONE')
-    #     return {'signal': 'SELL',
-    #             'take_profit': tick * (1 - 0.15),
-    #             'stop_loss': tick * (1 - 0.05)}
-    else:
-        signals.insert_signal(date, coin, tick, 'OUT', 'ENTER_ONE')
+    entry_sign = 0
+    ema_df = emas.get_emas(2, coin, date, 2)
+    if len(ema_df) < 2:
+        signals.insert_signal(date, coin, tick, 'OUT', 'CROSS_OVER')
         return None
+    ema5_prev = ema_df.iloc[0].ema5
+    ema20_prev = ema_df.iloc[0].ema20
+    ema5 = ema_df.iloc[1].ema5
+    ema20 = ema_df.iloc[1].ema20
+
+    if ema5_prev > ema20_prev:
+        versus_ema_prev = 1
+    else:
+        versus_ema_prev = -1
+    if ema5 > ema20:
+        versus_ema = 1
+    else:
+        versus_ema = -1
+
+    if versus_ema_prev == -1 and versus_ema == 1:
+        entry_sign = 1
+    if versus_ema_prev == 1 and versus_ema == -1:
+        entry_sign = -1
+
+    if trend_screen_one == 1 and entry_sign == 1:
+        signals.insert_signal(date, coin, tick, 'BUY', 'CROSS_OVER')
+        return {'signal': 'BUY',
+                'take_profit': tick * (1 + exit.set_take_profit()),
+                'stop_loss': tick * (1 - exit.set_stop_loss())}
+    elif trend_screen_one == -1 and entry_sign == -1:
+        signals.insert_signal(date, coin, tick, 'SELL', 'CROSS_OVER')
+        return None
+    else:
+        signals.insert_signal(date, coin, tick, 'OUT', 'CROSS_OVER')
+        return None
+
+
+def rsi_strategy(coin, date, tick):
+    n = 3
+    rsi_df = rsis.get_rsis(n, coin, date, 1)
+
+    if len(rsi_df) < n:
+        signals.insert_signal(date, coin, tick, 'OUT', 'RSI')
+        return None
+
+    rsi_value = rsi_df.iloc[0].rsi
+    rsi_value_last = rsi_df.iloc[(n-1)].rsi
+
+    if rsi_value < 20 < rsi_value_last:
+        signals.insert_signal(date, coin, tick, 'BUY', 'RSI')
+        return {'signal': 'BUY',
+                'take_profit': tick * (1 + exit.set_take_profit()),
+                'stop_loss': tick * (1 - exit.set_stop_loss())}
+    if rsi_value > 80 > rsi_value_last:
+        signals.insert_signal(date, coin, tick, 'SELL', 'RSI')
+        return None
+
+    signals.insert_signal(date, coin, tick, 'OUT', 'RSI')
+    return None
 
 
 def channel_strategy(coin, date, tick):
-    ema = emas.get_emas(1, coin, date, 1)
-    if not ema.empty:
-        exit_points = exit.get_exit_channel(coin, date, tick, 1)
-        if ema.iloc[0].ema20 > ticks.iloc[0].price > ema.iloc[0].ema20 * (1 - 0.05) and ema.iloc[0].ema20 > ticks.iloc[
-            1].price and trend_screen_one == 1:
-            signals.insert_signal(date, coin, tick, 'BUY', 'ENTER_TWO')
-            return {'signal': 'BUY',
-                    'take_profit': exit_points.get('take_profit'),
-                    'stop_loss': exit_points.get('stop_loss')}
-        # elif ema.iloc[0].ema20 < tick < ema.iloc[0].ema20 * (1 + 0.1) and trend_two == -1 and trend_one == -1:
-        #     signals.insert_signal(date, coin, tick, 'SELL', 'ENTER_TWO')
-        #     return {'signal': 'SELL',
-        #             'take_profit': exit_points.get('take_profit'),
-        #             'stop_loss': exit_points.get('stop_loss')}
-        else:
-            signals.insert_signal(date, coin, tick, 'OUT', 'ENTER_TWO')
-            return None
-    else:
-        signals.insert_signal(date, coin, tick, 'OUT', 'ENTER_TWO')
-        return None
-
-
-def strategy_two(coin, date, tick):
-
     trend_screen_one = market_trend.trend_market(date, coin)
     ticks = tickers.get_tickers(2, coin, date, 0)
     # trend_screen_two = trend_market(date, coin, 2)
@@ -54,18 +74,15 @@ def strategy_two(coin, date, tick):
     if not ema.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
         if ema.iloc[0].ema5 > ticks.iloc[0].price > ema.iloc[0].ema5 * (1 - 0.1) and ema.iloc[0].ema5 > ticks.iloc[1].price and trend_screen_one == 1:
-            signals.insert_signal(date, coin, tick, 'BUY', 'ENTER_TWO')
+            signals.insert_signal(date, coin, tick, 'BUY', 'CHANNEL')
             return {'signal': 'BUY',
                     'take_profit': exit_points.get('take_profit'),
                     'stop_loss': exit_points.get('stop_loss')}
-        # elif ema.iloc[0].ema20 < tick < ema.iloc[0].ema20 * (1 + 0.1) and trend_two == -1 and trend_one == -1:
-        #     signals.insert_signal(date, coin, tick, 'SELL', 'ENTER_TWO')
-        #     return {'signal': 'SELL',
-        #             'take_profit': exit_points.get('take_profit'),
-        #             'stop_loss': exit_points.get('stop_loss')}
+        elif ema.iloc[0].ema5 < ticks.iloc[0].price < ema.iloc[0].ema5 * (1 + 0.1) and ema.iloc[0].ema5 < ticks.iloc[1].price and trend_screen_one == -1:
+            signals.insert_signal(date, coin, tick, 'SELL', 'CHANNEL')
+            return None
         else:
-            signals.insert_signal(date, coin, tick, 'OUT', 'ENTER_TWO')
+            signals.insert_signal(date, coin, tick, 'OUT', 'CHANNEL')
             return None
     else:
-        signals.insert_signal(date, coin, tick, 'OUT', 'ENTER_TWO')
-        return None
+        signals.insert_signal(date, coin, tick, 'OUT', 'CHANNEL')
