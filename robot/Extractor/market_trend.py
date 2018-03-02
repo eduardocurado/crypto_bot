@@ -72,8 +72,6 @@ def trend_market(date, coin):
              np.log(macd_df_one.iloc[0].ema12/macd_df_one.iloc[1].ema12)]
     d_theta = np.log(theta[1]/theta[0])
 
-
-
     current_ema20 = macd_df_one.iloc[0].ema_26
     current_ema5 = macd_df_one.iloc[0].ema12
     dif_current = (current_ema5 - current_ema20) / current_ema20
