@@ -3,7 +3,7 @@ from robot.Extractor import signals, boillingers
 
 
 def set_take_profit():
-    return 0.2
+    return 0.30
 
 
 def set_stop_loss():
