@@ -18,7 +18,8 @@ def feed_data(coin):
 def triple_screen(n, coin, screen):
     tickers_df = tickers.get_tickers(n, coin, datetime.now(), 0)
     if len(tickers_df) >= n:
-        last = tickers_df.price.mean()
+        # last = tickers_df.price.mean()
+        last = tickers_df.iloc[len(tickers_df)].price
         tickers.insert_tickers(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), coin, last, screen)
 
 

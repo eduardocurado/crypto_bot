@@ -1,5 +1,5 @@
 from robot.Decision import exit
-from robot.Extractor import signals, emas, tickers, market_trend, rsis
+from robot.Extractor import signals, emas, tickers, market_trend, rsis, macds
 from robot.Indicators import Ingestion
 
 
@@ -70,15 +70,16 @@ def channel_strategy(coin, date, tick):
     trend_screen_one = market_trend.trend_market(date, coin)
     ticks = tickers.get_tickers(2, coin, date, 0)
     # trend_screen_two = trend_market(date, coin, 2)
-    ema = emas.get_emas(1, coin, date, 1)
-    if not ema.empty:
+    macd_df = macds.get_macds(1, coin, date, 1)
+    # ema = emas.get_emas(1, coin, date, 1)
+    if not macd_df.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
-        if ema.iloc[0].ema5 > ticks.iloc[0].price > ema.iloc[0].ema5 * (1 - 0.1) and ema.iloc[0].ema5 > ticks.iloc[1].price and trend_screen_one == 1:
+        if macd_df.iloc[0].ema12 > ticks.iloc[0].price > macd_df.iloc[0].ema12 * (1 - 0.1) and macd_df.iloc[0].ema12 > ticks.iloc[1].price and trend_screen_one == 1:
             signals.insert_signal(date, coin, tick, 'BUY', 'CHANNEL')
             return {'signal': 'BUY',
                     'take_profit': exit_points.get('take_profit'),
                     'stop_loss': exit_points.get('stop_loss')}
-        elif ema.iloc[0].ema5 < ticks.iloc[0].price < ema.iloc[0].ema5 * (1 + 0.1) and ema.iloc[0].ema5 < ticks.iloc[1].price and trend_screen_one == -1:
+        elif macd_df.iloc[0].ema12 < ticks.iloc[0].price < macd_df.iloc[0].ema12 * (1 + 0.1) and macd_df.iloc[0].ema12 < ticks.iloc[1].price and trend_screen_one == -1:
             signals.insert_signal(date, coin, tick, 'SELL', 'CHANNEL')
             return None
         else:

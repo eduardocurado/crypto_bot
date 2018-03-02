@@ -141,7 +141,6 @@ def update_take_profit():
 
 
 def update_stop_loss(coin, tick):
-    # update open positions
     open_positions = get_positions(coin, 'active')
     if not open_positions.empty:
         for index, row in open_positions.iterrows():

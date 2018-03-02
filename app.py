@@ -13,8 +13,8 @@ from robot.Utils import services, Plots
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
     coins = ['USDT_BTC', 'USDT_LTC']
-    days = 55
-    balance = 500
+    days = 60
+    balance = 500000000
     entry_size = balance / 10
     restored = Initializations.set_up_bd(days)
 
@@ -24,8 +24,8 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             print(size_bd)
         Initializations.create_backup(days)
 
-    # tickers_df = tickers.get_all_tickers(0)
-    tickers_df = tickers.get_all_tickers_screen('USDT_BTC', 0)
+    tickers_df = tickers.get_all_tickers(1)
+    # tickers_df = tickers.get_all_tickers_screen('USDT_BTC', 1)
     for index, row in tickers_df.iterrows():
         last_date = row.date.strftime("%Y-%m-%d %H:%M:%S")
         last_price = row.price
