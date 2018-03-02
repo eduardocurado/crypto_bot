@@ -19,7 +19,7 @@ macd = Table('Macd', meta,
 
 def get_macds(n, coin, date, screen):
     s = select([macd])\
-        .where(and_(macd.c.coin == coin, macd.c.date <= date, macd.c.screen==screen))\
+        .where(and_(macd.c.coin == coin, macd.c.date <= date, macd.c.screen == screen))\
         .order_by(desc(macd.c.date)).limit(
         n)
     rows = con.execute(s)

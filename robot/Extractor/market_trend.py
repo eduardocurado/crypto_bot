@@ -66,9 +66,13 @@ def trend_market(date, coin):
     # ema_df_two = emas.get_emas(n, coin, date, 2)
     if len(macd_df_one) < n:
         return None
-    theta = [np.arctan(macd_df_one.iloc[1].ema12/macd_df_one.iloc[2].ema12),
-             np.arctan(macd_df_one.iloc[0].ema12/macd_df_one.iloc[1].ema12)]
+    # if 0 in macd_df_one.ema12:
+    #     return None
+    theta = [np.log(macd_df_one.iloc[1].ema12/macd_df_one.iloc[2].ema12),
+             np.log(macd_df_one.iloc[0].ema12/macd_df_one.iloc[1].ema12)]
     d_theta = np.log(theta[1]/theta[0])
+
+
 
     current_ema20 = macd_df_one.iloc[0].ema_26
     current_ema5 = macd_df_one.iloc[0].ema12
@@ -81,14 +85,15 @@ def trend_market(date, coin):
     if dif_current > 0.05:
         if dif_current > dif_base * (1 + 0.05):
             vote = 1
+
     if dif_current < -0.05:
         if dif_current > dif_base:
             vote = 1
 
     #BULL MARKET
-    if d_theta >= 0.0025 and vote == 1:
+    if d_theta >= 0 and vote == 1:
         vote = 1
-    elif d_theta <= -0.003 and vote == -1:
+    elif d_theta <= 0 and vote == -1:
         vote = -1
     else:
         #TO SEE HOW THE MARKET GOES
