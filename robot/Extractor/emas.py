@@ -23,7 +23,7 @@ def insert_emas(date, coin, ema5, ema20, screen):
         #             print('Done.')
         return
     except Exception:
-        #print("Got error! EMA" + repr(Exception))
+        print("Got error! EMA" + repr(Exception))
         return
 
 

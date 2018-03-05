@@ -64,7 +64,8 @@ def get_historical_screen(interval, coin, screen):
         if not (x % (interval*12)):
             start = x-interval*12
             end = x
-            last = tickers_df.iloc[start:end].price.mean()
+            # last = tickers_df.iloc[start:end].price.mean()
+            last = tickers_df.iloc[end-1].price
             tickers.insert_tickers(row.date, coin, last, screen)
             features.update_indicators(row.date, coin, screen)
 
