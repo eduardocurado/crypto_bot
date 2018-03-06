@@ -5,7 +5,7 @@ import pandas as pd
 from robot.Poloniex import feeder
 from robot.Utils import Initializations
 from robot.Decision import features, exit, enter
-from robot.Extractor import longPositions, tickers
+from robot.Extractor import longPositions, tickers, balances
 from robot.Assessment import signal_assessment
 from robot.Utils import services, Plots
 
@@ -13,8 +13,8 @@ from robot.Utils import services, Plots
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
     coins = ['USDT_BTC', 'USDT_LTC']
-    days = 275
-    balance = 500000000
+    days = 15
+    balance = 1000
     entry_size = balance / 10
     restored = Initializations.set_up_bd(days)
 
@@ -38,11 +38,10 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                 print('Has open position')
                 print('EXITING POSITION')
                 services.execute_order()
-                longPositions.exit_positions(exits)
-                features.update_balance(coin)
-                balance += entry_size * len(exits)
-            else:
-                longPositions.update_stop_loss(coin, last_price)
+                revenue = longPositions.exit_positions(exits)
+                balance += revenue
+            # else:
+            #     longPositions.update_stop_loss(coin, last_price, last_date)
 
         if (len(tickers_df) - index) < 30:
             continue
@@ -66,20 +65,20 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                     entry_sign = cross_over
 
                 if entry_sign.get('signal') == 'BUY':
-                    if signal_assessment.assignment_buy(balance):
+                    size = (entry_size / last_price)
+                    if signal_assessment.assignment_buy(balance, size):
                         print('BUY')
                         print(last_date)
                         services.execute_order()
                         longPositions.enter_positions(TIME_DEFAULT_COUNT,
                                                       coin,
                                                       strategy,
-                                                      entry_size,
+                                                      size,
                                                       last_date,
                                                       last_price,
                                                       entry_sign.get('take_profit'),
                                                       entry_sign.get('stop_loss')
                                                       )
-                        features.update_balance(coin)
                         balance -= entry_size
                 elif entry_sign.get('signal') == 'SELL':
                     if signal_assessment.assignment_sell(coin):
@@ -99,8 +98,13 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                             print('SELL')
                             services.execute_order()
                             longPositions.exit_positions(exits)
-                            features.update_balance(coin)
                             balance += entry_size * len(exits)
+
+        longPositions.update_stop_loss(coin, last_price, last_date)
+        features.update_balance(balance, coin, last_date)
+        inserted = balances.insert_balance(last_date, 'USD', balance)
+        if not inserted:
+            balances.update_balance(last_date, 'USD', balance)
 
 
 def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):

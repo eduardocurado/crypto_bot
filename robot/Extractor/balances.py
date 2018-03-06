@@ -16,25 +16,36 @@ balances = Table('Balance', meta,
                  )
 
 
-def insert_balance(date, coin, size_positions):
-    try:
-        clause = balances.insert().values(date=date,
-                                          coin=coin,
-                                          size_positions=size_positions)
-        result = con.execute(clause)
-    except Exception:
-        return
-
-
 def get_balances(coin, date):
     s = select([balances]) \
         .where(and_(balances.c.coin == coin,
                     balances.c.date <= date))\
-        .order_by(desc(balances.c.date_ask))
+        .order_by(desc(balances.c.date))
     rows = con.execute(s)
     balances_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
     if not balances_df.empty:
         balances_df.columns = rows.keys()
     return balances_df
 
+
+def insert_balance(date, coin, size_position):
+    try:
+        clause = balances.insert().values(date=date,
+                                      coin=coin,
+                                      size_position=size_position)
+        result = con.execute(clause)
+        return True
+    except Exception:
+        return False
+
+
+def update_balance(date, coin, size_position):
+    try:
+        clause = balances.update(). \
+            where(and_(balances.c.date == date,
+                       balances.c.coin == coin)). \
+            values(size_position=size_position)
+        result = con.execute(clause)
+    except Exception:
+        print('Got error Update Balance')
 

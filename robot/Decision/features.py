@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from robot.Decision import features
-from robot.Extractor import votes, longPositions
+from robot.Extractor import votes, longPositions, balances
 from robot.Indicators import Calculator, Ingestion
 from robot.Utils import services
 
@@ -32,7 +32,11 @@ def update_position():
     pass
 
 
-def update_balance(coin):
-    # open_positions = longPositions.get_positions(coin, 'active')
-    pass
+def update_balance(balance, coin, date):
+    open_positions = longPositions.get_positions(coin, 'active')
+    if open_positions.empty:
+        return
+    open_sizes = open_positions.groupby(['coin'])['size_position'].sum().reset_index()
+    balances.insert_balance(date, coin, open_sizes.size_position[0])
+    return
 

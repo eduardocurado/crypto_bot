@@ -155,9 +155,8 @@ def trend_market(date, coin):
             theta_vote = 0
         elif theta[0] < 0 and theta[1] < 0:
             d_theta = np.log(abs(theta[0])/abs(theta[1]))
-            if d_theta <= -threshold:
-                theta_vote = 1
-
+            # if d_theta <= -threshold:
+            #     theta_vote = 1
 
     n = 3
     # ticks = tickers.get_tickers(500, coin, date, 0)
@@ -165,7 +164,6 @@ def trend_market(date, coin):
     # vol = np.std(ticks.log) * 50 ** 0.5
 
     macd_df_one = macds.get_macds(n, coin, date, 1)
-
     # ema_df_two = emas.get_emas(n, coin, date, 2)
     if len(macd_df_one) < n:
         return None

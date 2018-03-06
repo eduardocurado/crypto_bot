@@ -6,7 +6,7 @@ from sqlalchemy.sql import select, and_, desc
 
 from robot.Utils import Initializations
 from robot.Decision import features, exit
-from robot.Extractor import orders_book, shortPositions
+from robot.Extractor import orders_book, shortPositions, tickers
 
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
@@ -114,6 +114,7 @@ def close_positions(id_position, coin, tick, exit_date, log_return):
 
 
 def exit_positions(exits):
+    balance = 0
     for e in exits:
         date_ask = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ordered = orders_book.create_order()
@@ -133,6 +134,8 @@ def exit_positions(exits):
                                     ordered.get('date_settlement'),
                                     ordered.get('settlement'),
                                     e.get('source'))
+        balance += e.get('size_position') * e.get('exit_price')
+    return balance
 
 
 def update_take_profit():
@@ -140,8 +143,9 @@ def update_take_profit():
     pass
 
 
-def update_stop_loss(coin, tick):
+def update_stop_loss(coin, tick, date):
     open_positions = get_positions(coin, 'active')
+    tick = tickers.get_ticker(coin, date, 1)
     if not open_positions.empty:
         for index, row in open_positions.iterrows():
             new_stop_loss = max(tick * (1 - exit.set_stop_loss()), row.stop_loss)

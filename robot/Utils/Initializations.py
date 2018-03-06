@@ -146,6 +146,12 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                       Column('vote', Integer)
                       )
 
+    balances = Table('Balance', meta,
+                     Column('date', DateTime, primary_key=True),
+                     Column('coin', String, primary_key=True),
+                     Column('size_position', Float)
+                     )
+
     return con, meta
 
 

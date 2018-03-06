@@ -74,14 +74,17 @@ def channel_strategy(coin, date, tick):
     # ema = emas.get_emas(1, coin, date, 1)
     if not macd_df.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
+
         if macd_df.iloc[0].ema12 > ticks.iloc[0].price > macd_df.iloc[0].ema12 * (1 - 0.1) and trend_screen_one == 1:
             signals.insert_signal(date, coin, tick, 'BUY', 'CHANNEL')
             return {'signal': 'BUY',
                     'take_profit': exit_points.get('take_profit'),
                     'stop_loss': exit_points.get('stop_loss')}
+
         elif macd_df.iloc[0].ema12 < ticks.iloc[0].price < macd_df.iloc[0].ema12 * (1 + 0.1) and trend_screen_one == -1:
             signals.insert_signal(date, coin, tick, 'SELL', 'CHANNEL')
             return None
+
         else:
             signals.insert_signal(date, coin, tick, 'OUT', 'CHANNEL')
             return None
