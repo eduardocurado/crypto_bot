@@ -40,6 +40,17 @@ def get_longs(coin, id_position):
     return long_positions_df
 
 
+def get_all_status_longs(status):
+    s = select([long_positions])\
+        .where(and_(long_positions.c.status == status))\
+        .order_by(desc(long_positions.c.date_ask))
+    rows = con.execute(s)
+    long_positions_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
+    if not long_positions_df.empty:
+        long_positions_df.columns = rows.keys()
+    return long_positions_df
+
+
 def get_all_longs(coin):
     s = select([long_positions]) \
         .where(and_(long_positions.c.coin == coin)) \

@@ -32,11 +32,18 @@ def update_position():
     pass
 
 
-def update_balance(balance, coin, date):
-    open_positions = longPositions.get_positions(coin, 'active')
+def update_balance(balance, date):
+    inserted = balances.insert_balance(date, 'USD', balance)
+    if not inserted:
+        balances.update_balance(date, 'USD', balance)
+
+    open_positions = longPositions.get_all_status_longs('active')
     if open_positions.empty:
         return
     open_sizes = open_positions.groupby(['coin'])['size_position'].sum().reset_index()
-    balances.insert_balance(date, coin, open_sizes.size_position[0])
+    for index, row in open_sizes.iterrows():
+        inserted = balances.insert_balance(date, row.coin, row.size_position)
+        if not inserted:
+            balances.update_balance(date, row.coin, row.size_position)
     return
 

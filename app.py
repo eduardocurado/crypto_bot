@@ -101,10 +101,7 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                             balance += entry_size * len(exits)
 
         longPositions.update_stop_loss(coin, last_price, last_date)
-        features.update_balance(balance, coin, last_date)
-        inserted = balances.insert_balance(last_date, 'USD', balance)
-        if not inserted:
-            balances.update_balance(last_date, 'USD', balance)
+        features.update_balance(balance, last_date)
 
 
 def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
