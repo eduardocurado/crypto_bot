@@ -13,7 +13,7 @@ from robot.Utils import services, Plots
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
     coins = ['USDT_BTC', 'USDT_LTC']
-    days = 15
+    days = 90
     balance = 1000
     entry_size = balance / 10
     restored = Initializations.set_up_bd(days)
