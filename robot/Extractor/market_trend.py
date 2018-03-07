@@ -168,23 +168,26 @@ def trend_market(date, coin):
     if vote_rsi is None:
         return None
 
-    #DOWN UP
+    #DOWN UP CROSS OVER EMA: 2
     if dif_current > 0 > dif_base:
-        # UP UP
+        # UP UP THETA: 0
         if theta[0] > 0 and theta[1] > 0:
             if vote_rsi == 1:
                 vote = 1
+        # DOWN UP THETA: 2
         elif theta[0] > 0 > theta[1]:
             if vote_rsi == 0:
-                vote =1
+                vote = 1
 
-    # UP UP
+    # UP UP TREND LINE: 0
     if dif_current > 0 and dif_base > 0:
+        #DOWN UP: 2
         if theta[0] > 0 > theta[1]:
             if vote_rsi == -1:
                 vote = 1
-    #DOWN DOWN
+    #DOWN DOWN: 3
     if dif_current < 0 and dif_base < 0:
+        #DOWN DOWN 3
         if theta[0] < 0 and theta[1] < 0:
             if vote_rsi == -1:
                 vote = 1
