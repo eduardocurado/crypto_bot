@@ -1,3 +1,5 @@
+import numpy as np
+
 from robot.Decision import exit
 from robot.Extractor import signals, emas, tickers, market_trend, rsis, macds
 from robot.Indicators import Ingestion
@@ -58,9 +60,11 @@ def rsi_strategy(coin, date, tick):
         return {'signal': 'BUY',
                 'take_profit': tick * (1 + exit.set_take_profit()),
                 'stop_loss': tick * (1 - exit.set_stop_loss())}
-    if rsi_value > 80 > rsi_value_last:
+    elif rsi_value > 80 > rsi_value_last:
         signals.insert_signal(date, coin, tick, 'SELL', 'RSI')
-        return None
+        return {'signal': 'SELL',
+                'take_profit': tick * (1 - exit.set_take_profit()),
+                'stop_loss': tick * (1 + exit.set_stop_loss())}
 
     signals.insert_signal(date, coin, tick, 'OUT', 'RSI')
     return None
@@ -72,10 +76,11 @@ def channel_strategy(coin, date, tick):
     # trend_screen_two = trend_market(date, coin, 2)
     macd_df = macds.get_macds(1, coin, date, 1)
     # ema = emas.get_emas(1, coin, date, 1)
+
     if not macd_df.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
-
-        if macd_df.iloc[0].ema12 > ticks.iloc[0].price > macd_df.iloc[0].ema12 * (1 - 0.1) and trend_screen_one == 1:
+        dif_ema = np.log(ticks.iloc[0].price/macd_df.iloc[0].ema12)
+        if - 0.1 < dif_ema < 1 == trend_screen_one:
             signals.insert_signal(date, coin, tick, 'BUY', 'CHANNEL')
             return {'signal': 'BUY',
                     'take_profit': exit_points.get('take_profit'),

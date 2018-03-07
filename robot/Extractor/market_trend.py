@@ -2,7 +2,7 @@ import numpy as np
 
 from sqlalchemy import Table, Column, Integer, String, Float, DateTime
 
-from robot.Extractor import emas, macds, tickers
+from robot.Extractor import emas, macds, tickers, rsis
 from robot.Utils import Initializations
 
 con, meta = Initializations.connect_db('postgres', '', 'robotdb')
@@ -108,6 +108,21 @@ def insert_trend(coin, date, screen, dif_current, dif_base, delta_dif, theta_cur
 #     return vote
 
 
+def rsi_sign(coin, date):
+    rsi_df = rsis.get_rsis(1, coin, date, 1)
+    if rsi_df.empty:
+        return None
+
+    rsi = rsi_df.rsi[0]
+    if rsi <= 20:
+        vote = 1
+    elif rsi >= 80:
+        vote = -1
+    else:
+        vote = 0
+    return vote
+
+
 #VESRION USING FFT FROM TICK SCREEN ONE
 def trend_market(date, coin):
     from scipy.fftpack import ifft, fft
@@ -117,7 +132,6 @@ def trend_market(date, coin):
     df = df[df.date < date]
     data = df.price
 
-    theta_vote = 0
     if len(df) < 4:
         vote = 0
         return
@@ -128,47 +142,16 @@ def trend_market(date, coin):
         iY = ifft(yf).real[::-1]
         theta = [atan((iY[1] - iY[2]) / 48),
                  atan((iY[2] - iY[3]) / 48)]
-        # theta = [np.log(iY[2] / iY[3]),
-        #          np.log(iY[2] / iY[3])]
+        d_theta = np.log(theta[0] / theta[1])
 
-        # MARKET TREND LOG RETURN -> price_current / price_base
-        # BULL MARKET
-        # d_theta = np.log(iY[0]/iY[1])
-        # if d_theta >= 0:
-        #     theta_vote = 1
-        # elif d_theta <= 0:
-        #     theta_vote = -1
-        # else:
-        #     # TO SEE HOW THE MARKET GOES
-        #     theta_vote = 0
-        threshold = 0
-        if theta[0] > 0 and theta[1] > 0:
-            d_theta = np.log(theta[0] / theta[1])
-            if d_theta > threshold:
-                theta_vote = 1
-        elif theta[0] > 0 > theta[1]:
-            d_theta = np.log(theta[0] / abs(theta[1]))
-            if d_theta <= -threshold:
-                theta_vote = 1
-        elif theta[0] < 0 < theta[1]:
-            d_theta = np.log(abs(theta[0]) / theta[1])
-            theta_vote = 0
-        elif theta[0] < 0 and theta[1] < 0:
-            d_theta = np.log(abs(theta[0])/abs(theta[1]))
-            # if d_theta <= -threshold:
-            #     theta_vote = 1
-
-    n = 3
-    # ticks = tickers.get_tickers(500, coin, date, 0)
-    # ticks['log'] = (np.log(ticks['price'] / ticks['price'].shift(-1)))
-    # vol = np.std(ticks.log) * 50 ** 0.5
-
+    n = 2
     macd_df_one = macds.get_macds(n, coin, date, 1)
     # ema_df_two = emas.get_emas(n, coin, date, 2)
     if len(macd_df_one) < n:
         return None
 
     vote_macd = 0
+    theta_vote = 0
     vote = 0
 
     current_ema26 = macd_df_one.iloc[0].ema_26
@@ -181,23 +164,30 @@ def trend_market(date, coin):
 
     delta_dif = 0
 
-    if (dif_current > 0) and (dif_base > 0):
-        delta_dif = np.log(dif_current/dif_base)
-        if delta_dif > 0:
-            vote_macd = 1
-    elif (dif_current < 0) and (dif_base > 0):
-        vote_macd = -1
-    elif (dif_current < 0) and (dif_base < 0):
-        delta_dif = np.log(abs(dif_current/dif_base))
-        if delta_dif < 0:
-            vote_macd = 1
-    elif (dif_current > 0) and (dif_base < 0):
-        vote_macd = 1
+    vote_rsi = rsi_sign(coin, date)
+    if vote_rsi is None:
+        return None
 
-    if vote_macd == theta_vote == 1:
-        vote = 1
-    elif vote_macd == theta_vote == -1:
-        vote = -1
+    #DOWN UP
+    if dif_current > 0 > dif_base:
+        # UP UP
+        if theta[0] > 0 and theta[1] > 0:
+            if vote_rsi == 1:
+                vote = 1
+        elif theta[0] > 0 > theta[1]:
+            if vote_rsi == 0:
+                vote =1
+
+    # UP UP
+    if dif_current > 0 and dif_base > 0:
+        if theta[0] > 0 > theta[1]:
+            if vote_rsi == -1:
+                vote = 1
+    #DOWN DOWN
+    if dif_current < 0 and dif_base < 0:
+        if theta[0] < 0 and theta[1] < 0:
+            if vote_rsi == -1:
+                vote = 1
 
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, theta[0], theta[1], d_theta, vote)
     return vote
