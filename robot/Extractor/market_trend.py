@@ -142,7 +142,8 @@ def trend_market(date, coin):
         iY = ifft(yf).real[::-1]
         theta = [atan((iY[1] - iY[2]) / 48),
                  atan((iY[2] - iY[3]) / 48)]
-        d_theta = np.log(theta[0] / theta[1])
+
+        d_theta = (theta[0] - theta[1]) / theta[1]
 
     n = 2
     macd_df_one = macds.get_macds(n, coin, date, 1)
@@ -162,7 +163,7 @@ def trend_market(date, coin):
     base_ema12 = macd_df_one.iloc[len(macd_df_one) - 1].ema12
     dif_base = np.log(base_ema12/base_ema26)
 
-    delta_dif = 0
+    delta_dif = (dif_current - dif_base)/dif_base
 
     vote_rsi = rsi_sign(coin, date)
     if vote_rsi is None:
