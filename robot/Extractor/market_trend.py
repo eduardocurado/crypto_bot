@@ -169,29 +169,16 @@ def trend_market(date, coin):
     if vote_rsi is None:
         return None
 
-    #DOWN UP CROSS OVER EMA: 2
-    if dif_current > 0 > dif_base:
-        # UP UP THETA: 0
-        if theta[0] > 0 and theta[1] > 0:
-            if vote_rsi == 1:
-                vote = 1
-        # DOWN UP THETA: 2
-        elif theta[0] > 0 > theta[1]:
-            if vote_rsi == 0:
-                vote = 1
+    if theta[1] <= -0.06 and theta[0] <= -0.06 and dif_base <= -0.05 and dif_current < 0.03:
+        vote = 1
 
-    # UP UP TREND LINE: 0
-    if dif_current > 0 and dif_base > 0:
-        #DOWN UP: 2
-        if theta[0] > 0 > theta[1]:
-            if vote_rsi == -1:
-                vote = 1
-    #DOWN DOWN: 3
-    if dif_current < 0 and dif_base < 0:
-        #DOWN DOWN 3
-        if theta[0] < 0 and theta[1] < 0:
-            if vote_rsi == -1:
-                vote = 1
+    if theta[1] <= -0.06 < theta[0] and dif_base > -0.05 and dif_current > -0.05 \
+            and vote_rsi == 0:
+        vote = 1
+
+    if theta[1] >= 0.04 and theta[0] >= 0.04 and dif_base <= -0.05 and \
+            dif_current < -0.03 and (vote_rsi == 0 or vote_rsi == 1):
+        vote = 1
 
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, theta[0], theta[1], d_theta, vote)
     return vote
