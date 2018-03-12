@@ -62,5 +62,6 @@ def get_ticker(coin, date, screen):
     rows = con.execute(s)
     tickers_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
     if not tickers_df.empty:
-        return True
-    return False
+        tickers_df.columns = rows.keys()
+        return tickers_df
+    return tickers_df

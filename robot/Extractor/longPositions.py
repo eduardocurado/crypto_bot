@@ -24,7 +24,8 @@ long_positions = Table('Long', meta,
                        Column('exit_date', DateTime),
                        Column('exit_price', Float),
                        Column('log_return', Float),
-                       Column('status', String)
+                       Column('status', String),
+                       Column('source', String)
                        )
 
 
@@ -110,7 +111,7 @@ def update_position_stop_loss(id_position, coin, stop_loss):
         print('Got error Close')
 
 
-def close_positions(id_position, coin, tick, exit_date, log_return):
+def close_positions(id_position, coin, tick, exit_date, log_return, source):
     try:
         clause = long_positions.update(). \
             where(and_(long_positions.c.id_position == id_position,
@@ -118,7 +119,8 @@ def close_positions(id_position, coin, tick, exit_date, log_return):
             values(status='closed',
                    exit_date=exit_date,
                    exit_price=tick,
-                   log_return=log_return)
+                   log_return=log_return,
+                   source=source)
         result = con.execute(clause)
     except Exception:
         print('Got error Close')
@@ -135,8 +137,7 @@ def exit_positions(exits):
         long_id = get_longs(e.get('coin'), e.get('id')).iloc[0]
         log_return = np.log(ordered.get('settlement')/long_id.settlement)
         print(log_return)
-        close_positions(e.get('id'), e.get('coin'), e.get('exit_price'), e.get('ask_date'), log_return)
-
+        close_positions(e.get('id'), e.get('coin'), e.get('exit_price'), e.get('ask_date'), log_return, e.get('source'))
         shortPositions.insert_short(e.get('id'),
                                     e.get('coin'),
                                     e.get('size_position'),
@@ -145,7 +146,8 @@ def exit_positions(exits):
                                     ordered.get('date_settlement'),
                                     ordered.get('settlement'),
                                     e.get('source'))
-        balance += e.get('size_position') * e.get('exit_price')
+        balance = balance + e.get('size_position') * ordered.get('settlement') - \
+                  e.get('size_position') * ordered.get('settlement') * 0.0015
     return balance
 
 
@@ -155,10 +157,14 @@ def update_take_profit():
 
 
 def update_stop_loss(coin, tick, date):
+    # check if there is a profit and minimize loss with profit
     open_positions = get_positions(coin, 'active')
     tick = tickers.get_ticker(coin, date, 1)
     if not open_positions.empty:
         for index, row in open_positions.iterrows():
-            new_stop_loss = max(tick * (1 - exit.set_stop_loss()), row.stop_loss)
+            new_stop_loss = max(exit.set_stop_loss(coin, date), row.stop_loss)
+            if np.log(tick.iloc[0].price/row.ask) >= 0.5:
+                # pass
+                new_stop_loss = row.ask
             if new_stop_loss > row.stop_loss:
                 update_position_stop_loss(row.id_position, coin, new_stop_loss)

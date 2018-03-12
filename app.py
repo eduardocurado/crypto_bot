@@ -12,8 +12,8 @@ from robot.Utils import services, Plots
 
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
     TIME_DEFAULT_COUNT = 0
-    coins = ['USDT_BTC', 'USDT_LTC']
-    days = 90
+    coins = ['USDT_BTC', 'USDT_LTC', 'USDT_XRP']
+    days = 60
     balance = 1000
     entry_size = balance / 10
     restored = Initializations.set_up_bd(days)
@@ -24,6 +24,10 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
             print(size_bd)
         Initializations.create_backup(days)
 
+    first_date = tickers.get_all_tickers(0).iloc[0].date
+    balances.insert_balance(first_date, 'USD', balance)
+    print('Initial balance')
+    print(balance)
     tickers_df = tickers.get_all_tickers(0)
     # tickers_df = tickers.get_all_tickers_screen('USDT_BTC', 1)
     for index, row in tickers_df.iterrows():
@@ -31,7 +35,6 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
         last_price = row.price
         coin = row.coin
         open_positions = longPositions.get_positions(coin, 'active')
-
         if not open_positions.empty:
             exits = exit.strategy_one(last_price, last_date, coin, open_positions)
             if exits:
@@ -40,13 +43,20 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                 services.execute_order()
                 revenue = longPositions.exit_positions(exits)
                 balance += revenue
+                open_positions = longPositions.get_all_status_longs('active')
+                print('Total open Positions')
+                print(len(open_positions))
+                print('Balance')
+                print(balance)
+                features.update_balance(balance, last_date)
             # else:
             #     longPositions.update_stop_loss(coin, last_price, last_date)
 
         if (len(tickers_df) - index) < 30:
             continue
         TIME_DEFAULT_COUNT += 1
-        if tickers.get_ticker(coin, last_date, 1):
+        tick = tickers.get_ticker(coin, last_date, 1)
+        if not tick.empty:
             cross_over = None
             channel = None
             rsi = None
@@ -65,8 +75,10 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                     entry_sign = cross_over
 
                 if entry_sign.get('signal') == 'BUY':
-                    size = (entry_size / last_price)
-                    if signal_assessment.assignment_buy(balance, size):
+                    entry_now = signal_assessment.assignment_buy(balance, last_date, coin)
+                    if entry_now:
+                        print(entry_now)
+                        size = (entry_now / last_price)
                         print('BUY')
                         print(last_date)
                         services.execute_order()
@@ -79,7 +91,13 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                                                       entry_sign.get('take_profit'),
                                                       entry_sign.get('stop_loss')
                                                       )
-                        balance -= entry_size
+                        balance = balance - entry_now - entry_now * 0.0025
+                        open_positions = longPositions.get_all_status_longs('active')
+                        print(last_date)
+                        print('Total open Positions')
+                        print(len(open_positions))
+                        print('Balance')
+                        print(balance)
                 elif entry_sign.get('signal') == 'SELL':
                     if signal_assessment.assignment_sell(coin):
                         open_positions = longPositions.get_positions(coin, 'active')
@@ -98,9 +116,15 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
                             print('SELL')
                             services.execute_order()
                             longPositions.exit_positions(exits)
-                            balance += entry_size * len(exits)
+                            balance += entry_size * len(exits) #does not yet include taxes
 
-        longPositions.update_stop_loss(coin, last_price, last_date)
+            longPositions.update_stop_loss(coin, last_price, last_date)
+            open_positions = longPositions.get_all_status_longs('active')
+            print(last_date)
+            print('Total open Positions')
+            print(len(open_positions))
+            print('Balance')
+            print(balance)
         features.update_balance(balance, last_date)
 
 

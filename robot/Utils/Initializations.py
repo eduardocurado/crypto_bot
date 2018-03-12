@@ -111,7 +111,8 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                            Column('exit_date', DateTime),
                            Column('exit_price', Float),
                            Column('log_return', Float),
-                           Column('status', String)
+                           Column('status', String),
+                           Column('source', String)
                            )
 
     short_positions = Table('Short', meta,

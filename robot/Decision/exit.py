@@ -1,13 +1,22 @@
 import numpy as np
-from robot.Extractor import signals, boillingers
+from datetime import datetime, timedelta
+from robot.Extractor import signals, boillingers, tickers
+from robot.Decision import exit
 
 
 def set_take_profit():
-    return 0.20
+    return 0.15
 
 
-def set_stop_loss():
-    return 0.05
+def set_stop_loss(coin, date):
+    ticker_df = tickers.get_all_tickers_screen(coin, 0)[::-1]
+    date_now = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+    last_date_now = date_now - timedelta(hours=8)
+    if len(ticker_df):
+        _between = ticker_df[(ticker_df['date'] >= last_date_now) & (ticker_df['date'] <= date_now)]
+        _between_sorted = _between.sort_values(by=['price'])
+        stop_loss = min(_between_sorted.iloc[0].price, (1 - 0.05) * _between.iloc[0].price)
+    return stop_loss
 
 
 def strategy_one(tick, date, coin, open_positions):
@@ -38,4 +47,4 @@ def get_exit_channel(coin, date, tick, screen):
                 'stop_loss': 0}
     log_return_band = np.log(boillingers_df.iloc[0].upper_band/tick)
     return {'take_profit': (min(set_take_profit(), log_return_band) + 1) * tick,
-            'stop_loss': tick * (1 - set_stop_loss())}
+            'stop_loss':  exit.set_stop_loss(coin, date)}

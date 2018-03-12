@@ -36,8 +36,13 @@ def update_balance(balance, date):
     inserted = balances.insert_balance(date, 'USD', balance)
     if not inserted:
         balances.update_balance(date, 'USD', balance)
-
     open_positions = longPositions.get_all_status_longs('active')
+
+    for c in ['USDT_BTC', 'USDT_LTC', 'USDT_XRP']:
+        inserted = balances.insert_balance(date, c, 0)
+        if not inserted:
+            balances.update_balance(date, c, 0)
+
     if open_positions.empty:
         return
     open_sizes = open_positions.groupby(['coin'])['size_position'].sum().reset_index()

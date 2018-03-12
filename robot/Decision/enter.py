@@ -35,7 +35,7 @@ def cross_over_strategy(coin, date, tick):
         signals.insert_signal(date, coin, tick, 'BUY', 'CROSS_OVER')
         return {'signal': 'BUY',
                 'take_profit': tick * (1 + exit.set_take_profit()),
-                'stop_loss': tick * (1 - exit.set_stop_loss())}
+                'stop_loss': exit.set_stop_loss(coin, date)}
     elif trend_screen_one == -1 and entry_sign == -1:
         signals.insert_signal(date, coin, tick, 'SELL', 'CROSS_OVER')
         return None
@@ -59,12 +59,12 @@ def rsi_strategy(coin, date, tick):
         signals.insert_signal(date, coin, tick, 'BUY', 'RSI')
         return {'signal': 'BUY',
                 'take_profit': tick * (1 + exit.set_take_profit()),
-                'stop_loss': tick * (1 - exit.set_stop_loss())}
+                'stop_loss': exit.set_stop_loss(coin, date)}
     elif rsi_value > 80 > rsi_value_last:
         signals.insert_signal(date, coin, tick, 'SELL', 'RSI')
         return {'signal': 'SELL',
                 'take_profit': tick * (1 - exit.set_take_profit()),
-                'stop_loss': tick * (1 + exit.set_stop_loss())}
+                'stop_loss': exit.set_stop_loss(coin, date)}
 
     signals.insert_signal(date, coin, tick, 'OUT', 'RSI')
     return None
