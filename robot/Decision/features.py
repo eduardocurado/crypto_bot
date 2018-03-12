@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from robot.Decision import features
-from robot.Extractor import votes, longPositions, balances
+from robot.Extractor import balances, longPositions, votes
 from robot.Indicators import Calculator, Ingestion
 from robot.Utils import services
 
@@ -52,3 +52,20 @@ def update_balance(balance, date):
             balances.update_balance(date, row.coin, row.size_position)
     return
 
+
+def features_signal_dif(dif):
+    if dif <= -0.05:
+        return 0
+    elif dif >= 0.3:
+        return 1
+    else:
+        return 2
+
+
+def features_signal_theta(theta):
+    if theta <= -0.06:
+        return 0
+    elif theta >= 0.4:
+        return 1
+    else:
+        return 2

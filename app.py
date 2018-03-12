@@ -1,13 +1,11 @@
-from datetime import datetime, timedelta
 import time
+from datetime import datetime
 
-import pandas as pd
-from robot.Poloniex import feeder
-from robot.Utils import Initializations
-from robot.Decision import features, exit, enter
-from robot.Extractor import longPositions, tickers, balances
 from robot.Assessment import signal_assessment
-from robot.Utils import services, Plots
+from robot.Decision import enter, exit, features
+from robot.Extractor import balances, longPositions, tickers
+from robot.Poloniex import feeder
+from robot.Utils import Initializations, services
 
 
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
