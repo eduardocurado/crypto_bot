@@ -182,6 +182,8 @@ def trend_market(date, coin):
     elif theta[1] >= 0.04 and theta[0] >= 0.04 and dif_base <= -0.05 and dif_current <= -0.05:
         vote = 1
 
-    # 2 2 0 2
+    # 2 2 0 0
+    elif -0.06 < theta[1] < 0.04 and -0.06 < theta[0] < 0.04 and dif_base <= -0.05:
+        vote = 1
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, theta[0], theta[1], d_theta, vote)
     return vote
