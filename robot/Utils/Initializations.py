@@ -159,10 +159,10 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
 def restore_backup(days):
     from pathlib import Path
     import os
-
-    file_path = Path('dump_' + str(days) + '.backup')
+    path_dir = 'Dumps/'
+    file_path = Path(path_dir + 'dump_' + str(days) + '.backup')
     if file_path.exists():
-        os.system('psql -U postgres -d robotdb < dump_' + str(days) + '.backup >/dev/null 2>&1')
+        os.system('psql -U postgres -d robotdb < Dumps/dump_' + str(days) + '.backup >/dev/null 2>&1')
         print('Restoring DB ...')
         return True
     else:
@@ -171,8 +171,7 @@ def restore_backup(days):
 
 def create_backup(days):
     import os
-
-    os.system('pg_dump -U postgres robotdb -f dump_' + str(days) + '.backup')
+    os.system('pg_dump -U postgres robotdb -f Dumps/dump_' + str(days) + '.backup')
     print("backup_successfull")
 
 
