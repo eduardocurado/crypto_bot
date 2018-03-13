@@ -74,12 +74,9 @@ def trend_market(date, coin):
 
     n = 2
     macd_df_one = macds.get_macds(n, coin, date, 1)
-    # ema_df_two = emas.get_emas(n, coin, date, 2)
     if len(macd_df_one) < n:
         return None
 
-    vote_macd = 0
-    theta_vote = 0
     vote = 0
 
     current_ema26 = macd_df_one.iloc[0].ema_26

@@ -34,8 +34,8 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                     Column('date', DateTime, primary_key=True),
                     Column('coin', String, primary_key=True),
                     Column('price', Float),
+                    Column('volume', Float),
                     Column('screen', Integer, primary_key=True)
-
                     )
 
     sma = Table('Sma', meta,

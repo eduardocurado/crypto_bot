@@ -18,9 +18,10 @@ def get_historical_data(coin, start):
     for h in historical:
         # tick = np.mean((float(h['close']) + float(h['open']) + float(h['low']) + float(h['high'])))
         tick = float(h['close'])
+        volume = float(h['volume'])
         date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(h['date']))
         try:
-            tickers.insert_tickers(date, coin, tick, 0)
+            tickers.insert_tickers(date, coin, tick, volume, 0)
         except Exception:
             continue
         features.update_indicators(date, coin, 0)
@@ -59,14 +60,17 @@ def get_tick_interval(coin, last_date, interval):
 def get_historical_screen(interval, coin, screen):
     x = 0
     tickers_df = tickers.get_all_tickers_screen(coin, 0)
+    volume = 0
     for index, row in tickers_df.iterrows():
         x += 1
+        volume += row.volume
         if not (x % (interval*12)):
             start = x-interval*12
             end = x
             # last = tickers_df.iloc[start:end].price.mean()
             last = tickers_df.iloc[end-1].price
-            tickers.insert_tickers(row.date, coin, last, screen)
+            tickers.insert_tickers(row.date, coin, last, volume, screen)
             features.update_indicators(row.date, coin, screen)
+            volume = 0
 
 

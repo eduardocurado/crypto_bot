@@ -8,6 +8,7 @@ tickers = Table('Ticker', meta,
                 Column('date', DateTime, primary_key=True),
                 Column('coin', String, primary_key=True),
                 Column('price', Float),
+                Column('volume', Float),
                 Column('screen', Integer, primary_key=True)
                 )
 
@@ -25,9 +26,9 @@ def get_tickers(n, coin, date, screen):
     return tickers_df
 
 
-def insert_tickers(date, coin, last, screen):
+def insert_tickers(date, coin, last, volume, screen):
     try:
-        clause = tickers.insert().values(date=date, coin=coin, price=last, screen=screen)
+        clause = tickers.insert().values(date=date, coin=coin, price=last,volume=volume, screen=screen)
         con.execute(clause)
     except Exception:
         return
