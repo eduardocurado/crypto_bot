@@ -1,11 +1,11 @@
 import time
 from datetime import datetime
-
-from robot.Assessment import signal_assessment
-from robot.Decision import enter, exit, features
-from robot.Extractor import balances, longPositions, tickers
 from robot.Poloniex import feeder
-from robot.Utils import Initializations, services
+from robot.Utils import Initializations
+from robot.Decision import features, exit, enter
+from robot.Extractor import longPositions, tickers, balances
+from robot.Assessment import signal_assessment
+from robot.Utils import services, Plots
 
 
 def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
@@ -118,7 +118,10 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
 
             longPositions.update_stop_loss(coin, last_price, last_date)
             open_positions = longPositions.get_all_status_longs('active')
+            closed_positions = longPositions.get_all_status_longs('closed')
             print(last_date)
+            print('Total Positions')
+            print((len(open_positions) +len(closed_positions)))
             print('Total open Positions')
             print(len(open_positions))
             print('Balance')

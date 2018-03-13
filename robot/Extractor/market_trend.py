@@ -52,6 +52,9 @@ def trend_market(date, coin):
     from scipy.fftpack import ifft, fft
     from math import atan
 
+    # 300 segundos = 5 min
+    # 300 * 4h = 1200 h / 24 h = 50 dias
+    #
     df = tickers.get_tickers(300, coin, date, 1)#TODO Change screen test
     df = df[df.date < date]
     data = df.price
@@ -64,8 +67,8 @@ def trend_market(date, coin):
         wn = 18
         yf[wn:-wn] = 0
         iY = ifft(yf).real[::-1]
-        theta = [atan((iY[1] - iY[2]) / 48),
-                 atan((iY[2] - iY[3]) / 48)]
+        theta = [atan((iY[0] - iY[1]) / 48),
+                 atan((iY[1] - iY[2]) / 48)]
 
         d_theta = (theta[0] - theta[1]) / theta[1]
 
@@ -98,12 +101,16 @@ def trend_market(date, coin):
     dif_b = features.features_signal_dif(dif_base)
     dif_c = features.features_signal_dif(dif_current)
 
-    # 0 0 0 0|2 0
-    if theta_b == theta_c == dif_b == 0 and (dif_c == 0 or dif_c == 2) and vote_rsi == 0:
+    # 0 0 1 1 0|?
+    if dif_b == dif_c == 0 and theta_b == theta_c == 1 and vote_rsi == 1:
+        vote = 1
+    #0 0 2 2 ?
+    elif dif_b == dif_c == 0 and theta_b == theta_c == 2:
         vote = 1
 
-    #1 1 0 0 0|1
-    elif theta_b == theta_c == 1 and dif_b == dif_c == 0 and vote_rsi != -1:
+    elif coin == 'USDT_BTC' and  dif_b == dif_c == theta_b == theta_c == 1:
+        vote = 1
+    elif coin == 'USDT_XRP' and dif_b == dif_c == 1 and theta_b == theta_c == 2:
         vote = 1
 
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, theta[0], theta[1], d_theta, vote)
