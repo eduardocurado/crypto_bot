@@ -105,7 +105,7 @@ def trend_market(date, coin):
     elif dif_b == dif_c == 0 and theta_b == theta_c == 2:
         vote = 1
 
-    elif coin == 'USDT_BTC' and  dif_b == dif_c == theta_b == theta_c == 1:
+    elif coin == 'USDT_BTC' and dif_b == dif_c == theta_b == theta_c == 1:
         vote = 1
     elif coin == 'USDT_XRP' and dif_b == dif_c == 1 and theta_b == theta_c == 2:
         vote = 1
