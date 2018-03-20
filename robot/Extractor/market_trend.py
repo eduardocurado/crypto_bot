@@ -101,8 +101,6 @@ def trend_market(date, coin):
         return
     else:
         max_growth = get_max_min(coin, df)
-        print('Max Growth')
-        print(max_growth)
         yf = fft(data)
         wn = 18
         yf[wn:-wn] = 0
@@ -118,13 +116,15 @@ def trend_market(date, coin):
         return None
 
     vote = 0
-
-    current_ema26 = macd_df_one.iloc[0].ema_26
-    current_ema12 = macd_df_one.iloc[0].ema12
+    print('Date Index 0')
+    print(macd_df_one)
+    current_ema26 = macd_df_one.iloc[1].ema_26
+    print(macd_df_one.iloc[1].date)
+    current_ema12 = macd_df_one.iloc[1].ema12
     dif_current = np.log(current_ema12/current_ema26)
 
-    base_ema26 = macd_df_one.iloc[len(macd_df_one) - 1].ema_26
-    base_ema12 = macd_df_one.iloc[len(macd_df_one) - 1].ema12
+    base_ema26 = macd_df_one.iloc[0].ema_26
+    base_ema12 = macd_df_one.iloc[0].ema12
     dif_base = np.log(base_ema12/base_ema26)
 
     delta_dif = (dif_current - dif_base)/dif_base
