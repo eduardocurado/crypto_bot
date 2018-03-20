@@ -129,54 +129,6 @@ def main_historical(INTERMEDIATE_INTERVAL, LONG_INTERVAL):
         features.update_balance(balance, last_date)
 
 
-def main(TIME_DEFAULT, INTERMEDIATE_INTERVAL, LONG_INTERVAL):
-    TIME_DEFAULT_COUNT = 0
-    coin = 'BTC_ETH'
-    balance = 0.002189393483
-    start = datetime.now()
-    print(start)
-
-    while 1:
-        time.sleep(TIME_DEFAULT)
-        tick, last_date = feeder.get_tick(coin)
-        if not tick:
-            print("ERROR")
-            continue
-        print(tick)
-        open_positions = longPositions.get_positions(coin, 'active')
-        if not open_positions.empty:
-            exits = exit.strategy_one(tick, last_date, coin, open_positions)
-            if exits:
-                print('EXITING POSITION')
-                services.execute_order()
-                longPositions.exit_positions(exits)
-                features.update_balance(coin)
-        longPositions.update_stop_loss()
-        longPositions.update_take_profit()
-        features.update_indicators(last_date, coin, 0)
-        TIME_DEFAULT_COUNT += 1
-
-        if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL or not TIME_DEFAULT_COUNT % LONG_INTERVAL:
-            if not TIME_DEFAULT_COUNT % INTERMEDIATE_INTERVAL:
-                features.update_screen(INTERMEDIATE_INTERVAL, coin, 1)
-            if not TIME_DEFAULT_COUNT % LONG_INTERVAL:
-                features.update_screen(LONG_INTERVAL, coin, 2)
-
-            entry_sign = enter.strategy_one()
-            if entry_sign == 'BUY':
-                if signal_assessment.assignment():
-                    print('BUY')
-                    services.execute_order()
-                    longPositions.enter_positions(TIME_DEFAULT_COUNT, coin, balance, last_date, tick)
-                    features.update_balance(coin)
-            elif entry_sign == 'SELL':
-                if signal_assessment.assignment():
-                    print('SELL')
-                    services.execute_order()
-                    longPositions.exit_positions(TIME_DEFAULT_COUNT, coin, balance, last_date, tick)
-                    features.update_balance(coin)
-
-
 TIME_DEFAULT = 5 # MINUTOS
 INTERMEDIATE_INTERVAL = 20*TIME_DEFAULT  #S
 LONG_INTERVAL = 100*TIME_DEFAULT  # S
