@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import pickle
 from sqlalchemy import Column, DateTime, Float, Integer, String, Table
 from sqlalchemy.sql import and_
 
@@ -81,11 +83,11 @@ def rsi_sign(coin, date):
         vote = -1
     else:
         vote = 0
-    return vote
+    return rsi
 
 
 #VESRION USING FFT FROM TICK SCREEN ONE
-def trend_market(date, coin):
+def trend_market(date, coin, ema_dif):
     from scipy.fftpack import ifft, fft
     from math import atan
 
@@ -125,19 +127,14 @@ def trend_market(date, coin):
 
     delta_dif = (dif_current - dif_base)/dif_base
 
-    vote_rsi = rsi_sign(coin, date)
-    if vote_rsi is None:
-        return None
+    rsi = rsi_sign(coin, date)
 
-    theta_b = features.features_signal_theta(theta[1])
-    theta_c = features.features_signal_theta(theta[0])
-    dif_b = features.features_signal_dif(dif_base)
-    dif_c = features.features_signal_dif(dif_current)
-
-    if theta[0] > 0 and dif_current > 0:
-        vote = 1
-    else:
-        vote = 0
+    data = [dif_current, theta[0], rsi/100, ema_dif]
+    X = pd.DataFrame(columns=['dif_current', 'theta_current', 'rsi', 'ema_dif'])
+    X.loc[0] = data
+    # load the model from disk
+    loaded_model = pickle.load(open('Notebooks/finalized_model.sav', 'rb'))
+    vote = loaded_model.predict(X)[0]
 
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, theta[0], theta[1], d_theta, vote)
     return vote
