@@ -4,6 +4,7 @@ import pickle
 from sqlalchemy import Column, DateTime, Float, Integer, String, Table
 from sqlalchemy.sql import and_
 
+from robot.Utils import services
 from robot.Decision import features
 from robot.Extractor import macds, rsis, tickers
 from robot.Utils import Initializations
@@ -20,6 +21,7 @@ mkt_trend = Table('Market_trend', meta,
                   Column('theta_base', Float),
                   Column('d_theta', Float),
                   Column('max_growth', Float),
+                  Column('max_loss', Float),
                   Column('vote', Integer)
                   )
 
@@ -36,13 +38,14 @@ def insert_trend(coin, date, screen, dif_current, dif_base, delta_dif, theta_cur
         return
 
 
-def update_max_growth(coin, date, screen, max_growth):
+def update_max_growth(coin, date, screen, max_growth, max_loss):
     try:
         clause = mkt_trend.update(). \
             where(and_(mkt_trend.c.date == date,
                        mkt_trend.c.coin == coin,
                        mkt_trend.c.screen == screen)). \
-            values(max_growth=max_growth)
+            values(max_growth=max_growth,
+                   max_loss=max_loss)
         result = con.execute(clause)
     except Exception:
         print('Got error Max Growth')
@@ -50,12 +53,12 @@ def update_max_growth(coin, date, screen, max_growth):
 
 def get_max_growth(tickers_filtered, base_price):
     max_growth = 0
-    min_growth = 0
+    max_loss = 0
     for i, r in tickers_filtered.iterrows():
         g = np.log(r.price/base_price)
         max_growth = g if g > max_growth else max_growth
-        min_growth = g if g < min_growth else min_growth
-    return max_growth, min_growth
+        max_loss = g if g < max_loss else max_loss
+    return max_growth, max_loss
 
 
 def get_max_min(coin, tickers_df_two_c):
@@ -66,8 +69,8 @@ def get_max_min(coin, tickers_df_two_c):
     base_price = tickers_df_two_c.iloc[delta_t].price
     tickers_one = tickers.get_all_tickers_screen(coin, 0)
     t = tickers_one[(tickers_one['date'] >= base_date) & (tickers_one['date'] < last_date)]
-    max_growth, min_growth = get_max_growth(t, base_price)
-    update_max_growth(coin, base_date, 1, max_growth)
+    max_growth, max_loss = get_max_growth(t, base_price)
+    update_max_growth(coin, base_date, 1, max_growth, max_loss)
     return max_growth
 
 
@@ -124,17 +127,11 @@ def trend_market(date, coin, ema_dif):
     base_ema26 = macd_df_one.iloc[0].ema_26
     base_ema12 = macd_df_one.iloc[0].ema12
     dif_base = np.log(base_ema12/base_ema26)
-
     delta_dif = (dif_current - dif_base)/dif_base
-
     rsi = rsi_sign(coin, date)
 
-    data = [dif_current, theta[0], rsi/100, ema_dif]
-    X = pd.DataFrame(columns=['dif_current', 'theta_current', 'rsi', 'ema_dif'])
-    X.loc[0] = data
-    # load the model from disk
-    loaded_model = pickle.load(open('Notebooks/finalized_model.sav', 'rb'))
-    vote = loaded_model.predict(X)[0]
+    data = [dif_current, dif_base,theta[0], theta[1], rsi/100, ema_dif]
+    vote = services.predict_local_model(data)
 
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif, theta[0], theta[1], d_theta, vote)
     return vote

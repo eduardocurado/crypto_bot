@@ -145,6 +145,7 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                       Column('theta_base', Float),
                       Column('d_theta', Float),
                       Column('max_growth', Float),
+                      Column('max_loss', Float),
                       Column('vote', Integer)
                       )
 

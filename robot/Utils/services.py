@@ -1,5 +1,6 @@
 from datetime import datetime
-
+import pandas as pd
+import pickle
 from poloniex import Poloniex
 
 from robot.Extractor import tickers
@@ -25,3 +26,16 @@ def triple_screen(n, coin, screen):
 
 def execute_order():
     pass
+
+
+def predict_local_model(data):
+    x = pd.DataFrame(columns=['dif_current',
+                              'dif_base',
+                              'theta_current',
+                              'theta_base',
+                              'rsi',
+                              'ema_dif'])
+    x.loc[0] = data
+    # load the model from disk
+    loaded_model = pickle.load(open('Notebooks/finalized_model.sav', 'rb'))
+    return loaded_model.predict(x)[0]
