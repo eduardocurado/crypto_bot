@@ -71,13 +71,9 @@ def get_max_min_change(coin, tickers_df_two_c):
     delta_t = 6
     base_date = tickers_df_two_c.iloc[delta_t].date
     last_date = tickers_df_two_c.iloc[0].date
-    print('Base Date for Max Change')
-    print(base_date)
-    print('Last Date for Max Change')
-    print(last_date)
     base_price = tickers_df_two_c.iloc[delta_t].price
     tickers_one = tickers.get_all_tickers_screen(coin, 0)
-    t = tickers_one[(tickers_one['date'] >= base_date) & (tickers_one['date'] < last_date)]
+    t = tickers_one[(tickers_one['date'] >= base_date) & (tickers_one['date'] <= last_date)]
     max_growth, max_loss = get_max_growth(t, base_price)
     update_max_growth(coin, base_date, 1, max_growth, max_loss)
     return max_growth
@@ -87,6 +83,10 @@ def get_max_min(coin, date):
     ticker_df = tickers.get_all_tickers_screen(coin, 0)[::-1]
     date_now = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
     last_date_now = date_now - timedelta(hours=24)
+    print('Base Date for Max Change')
+    print(date_now)
+    print('Last Date for Max Change')
+    print(last_date_now)
     if len(ticker_df):
         _between = ticker_df[(ticker_df['date'] >= last_date_now) & (ticker_df['date'] <= date_now)]
         max_price, min_price = np.max(_between['price']), np.min(_between['price'])
@@ -111,7 +111,7 @@ def trend_market(date, coin, ema_dif):
 
     # 600 * 4h = 2400ç h / 24 h = 50 dias
     df = tickers.get_tickers(600, coin, date, 1)
-    df = df[df.date < date]
+    df = df[df.date <= date]
     data = df.price
     # 300 * 4h = 1200 h / 24 h = 50 dias
     if len(df) < 300:
