@@ -83,10 +83,6 @@ def get_max_min(coin, date):
     ticker_df = tickers.get_all_tickers_screen(coin, 0)[::-1]
     date_now = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
     last_date_now = date_now - timedelta(hours=24)
-    print('Base Date for Max Change')
-    print(date_now)
-    print('Last Date for Max Change')
-    print(last_date_now)
     if len(ticker_df):
         _between = ticker_df[(ticker_df['date'] >= last_date_now) & (ticker_df['date'] <= date_now)]
         max_price, min_price = np.max(_between['price']), np.min(_between['price'])
@@ -105,7 +101,8 @@ def rsi_sign(coin, date):
 def trend_market(date, coin, ema_dif):
     from scipy.fftpack import ifft, fft
     from math import atan
-    print('Date')
+
+    print('Current Date')
     print(date)
     # 300 segundos = 5 min
 
