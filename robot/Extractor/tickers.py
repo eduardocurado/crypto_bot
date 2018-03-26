@@ -16,8 +16,7 @@ tickers = Table('Ticker', meta,
 def get_tickers(n, coin, date, screen):
     s = select([tickers])\
         .where(and_(tickers.c.coin == coin, tickers.c.date <= date, tickers.c.screen == screen))\
-        .order_by(
-        desc(tickers.c.date))\
+        .order_by(desc(tickers.c.date))\
         .limit(n)
     rows = con.execute(s)
     tickers_df = pd.DataFrame(rows.fetchall()).iloc[::-1]

@@ -72,7 +72,6 @@ def calculate_boillinger(date, coin, screen):
         ema20 = emas.get_emas(1, coin, date, screen).iloc[0].ema20
         # upper_band = sma20 + 2 * std20
         # lower_band = sma20 - 2 * std20]
-        #TODO: CHANGE PERCENTAGE TO A LIL BIT BIGGER
         upper_band = ema20 * (1 + 0.15)
         lower_band = ema20 * (1 - 0.15)
         height = upper_band - lower_band

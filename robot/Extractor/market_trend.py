@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-
+import pandas as pd
 import numpy as np
-from sqlalchemy import Column, DateTime, Float, Integer, String, Table
-from sqlalchemy.sql import and_
+from sqlalchemy import Column, DateTime, Float, Integer, String, Table, desc
+from sqlalchemy.sql import and_, select
 
-from robot.Extractor import macds, rsis, tickers
+from robot.Extractor import macds, rsis, tickers, smas
 from robot.Utils import Initializations
 from robot.Utils import services
 
@@ -24,12 +24,23 @@ mkt_trend = Table('Market_trend', meta,
                   Column('max_loss', Float),
                   Column('max_price', Float),
                   Column('min_price', Float),
+                  Column('max_rel', Float),
+                  Column('min_rel', Float),
+                  Column('log_ret', Float),
+                  Column('log_ret_p', Float),
+                  Column('histogram', Float),
+                  Column('ema_dif', Float),
+                  Column('rsi', Float),
+                  Column('dif_sma', Float),
+                  Column('max_growth_p', Float),
+                  Column('obv', Float),
                   Column('vote', Integer)
                   )
 
 
 def insert_trend(coin, date, screen, dif_current, dif_base, delta_dif, theta_current, theta_base, d_theta, long_dif,
-                 max_price, min_price, vote):
+                 max_price, min_price, max_rel, min_rel, log_ret, log_ret_p, histogram, ema_dif, rsi, dif_sma,
+                 max_growth_p, obv, vote):
     try:
         clause = mkt_trend.insert().values(coin=coin, date=date, screen=screen,
                                            dif_current=dif_current, dif_base=dif_base,
@@ -37,10 +48,25 @@ def insert_trend(coin, date, screen, dif_current, dif_base, delta_dif, theta_cur
                                            long_dif=long_dif,
                                            theta_current=theta_current, theta_base=theta_base,
                                            max_price=max_price, min_price=min_price,
-                                           d_theta=d_theta, vote=vote)
+                                           d_theta=d_theta,max_rel=max_rel, min_rel=min_rel,
+                                           log_ret=log_ret, log_ret_p=log_ret_p, histogram=histogram,
+                                           ema_dif=ema_dif, rsi=rsi, dif_sma=dif_sma, max_growth_p=max_growth_p,
+                                           obv=obv, vote=vote)
         result = con.execute(clause)
     except Exception:
         return
+
+
+def get_mkt_trends(n, coin, date, screen):
+    s = select([mkt_trend])\
+        .where(and_(mkt_trend.c.coin == coin, mkt_trend.c.date <= date, mkt_trend.c.screen == screen))\
+        .order_by(desc(mkt_trend.c.date))\
+        .limit(n)
+    rows = con.execute(s)
+    mkt_trend_df = pd.DataFrame(rows.fetchall()).iloc[::-1]
+    if not mkt_trend_df.empty:
+        mkt_trend_df.columns = rows.keys()
+    return mkt_trend_df
 
 
 def update_max_growth(coin, date, screen, max_growth, max_loss):
@@ -54,6 +80,18 @@ def update_max_growth(coin, date, screen, max_growth, max_loss):
         result = con.execute(clause)
     except Exception:
         print('Got error Max Growth')
+
+
+def update_obv(coin, date, screen, obv):
+    try:
+        clause = mkt_trend.update(). \
+            where(and_(mkt_trend.c.date == date,
+                       mkt_trend.c.coin == coin,
+                       mkt_trend.c.screen == screen)). \
+            values(obv=obv)
+        result = con.execute(clause)
+    except Exception:
+        print('Got error OBV')
 
 
 def get_max_growth(tickers_filtered, base_price):
@@ -76,7 +114,7 @@ def get_max_min_change(coin, tickers_df_two_c):
     t = tickers_one[(tickers_one['date'] >= base_date) & (tickers_one['date'] <= last_date)]
     max_growth, max_loss = get_max_growth(t, base_price)
     update_max_growth(coin, base_date, 1, max_growth, max_loss)
-    return max_growth
+    return max_growth, max_loss
 
 
 def get_max_min(coin, date):
@@ -98,7 +136,8 @@ def rsi_sign(coin, date):
     return rsi
 
 
-def trend_market(date, coin, ema_dif):
+def trend_market(date, coin, tick, ema_dif):
+    # strength_ema
     from scipy.fftpack import ifft, fft
     from math import atan
 
@@ -107,15 +146,16 @@ def trend_market(date, coin, ema_dif):
     # 300 segundos = 5 min
 
     # 600 * 4h = 2400ç h / 24 h = 50 dias
-    df = tickers.get_tickers(600, coin, date, 1)
-    df = df[df.date <= date]
+    price_df = tickers.get_tickers(600, coin, date, 1)
+    df = price_df[price_df.date <= date]
     data = df.price
+    price_df = price_df[::-1]
     # 300 * 4h = 1200 h / 24 h = 50 dias
     if len(df) < 300:
         vote = 0
         return None
     else:
-        get_max_min_change(coin, df)
+        max_growth, max_loss = get_max_min_change(coin, df)
         yf = fft(data)
         wn = 18
         yf[wn:-wn] = 0
@@ -128,28 +168,81 @@ def trend_market(date, coin, ema_dif):
     n = 2
     macd_df_one = macds.get_macds(n, coin, date, 1)
     macd_df_two = macds.get_macds(n, coin, date, 2)
+    sma_one = smas.get_smas(n, coin, date, 1)
+    mkttrend_df = get_mkt_trends(n, coin, date, 1)
     if len(macd_df_one) < n and len(macd_df_two) < n:
         return None
+    macd_df_one = macd_df_one[::-1]
+    macd_df_two = macd_df_two[::-1]
+    sma_one = sma_one[::-1]
+    mkttrend_df = mkttrend_df[::-1]
+    if len(mkttrend_df) >= 2:
+        max_growth_p = mkttrend_df.iloc[0].max_growth
+        obv_p = mkttrend_df.iloc[0].obv
+        volume = price_df.iloc[0].volume
+        p_price = price_df.iloc[1].price
+        price = price_df.iloc[0].price
+        if price > p_price:
+            obv = obv_p + volume
+        elif price < p_price:
+            obv = obv_p - volume
+        else:
+            obv = obv_p
+    #SET FIRST OBV: MKT TREND = 0 | 1
+    elif len(mkttrend_df) == 1:
+        max_growth_p = mkttrend_df.iloc[0].max_growth
+        obv_p = mkttrend_df.iloc[0].obv
+        volume = price_df.iloc[0].volume
+        p_price = price_df.iloc[1].price
+        price = price_df.iloc[0].price
+        if price > p_price:
+            obv = obv_p + volume
+        elif price < p_price:
+            obv = obv_p - volume
+        else:
+            obv = obv_p
+    else:
+        obv = 0
+        max_growth_p = np.nan
 
     current_ema26 = macd_df_one.iloc[1].ema_26
     current_ema12 = macd_df_one.iloc[1].ema12
     dif_current = current_ema12 - current_ema26
+
     base_ema26 = macd_df_one.iloc[0].ema_26
     base_ema12 = macd_df_one.iloc[0].ema12
     dif_base = base_ema12 - base_ema26
+
     delta_dif = (dif_current - dif_base)/dif_base
 
     long_current_ema26 = macd_df_two.iloc[1].ema_26
     long_current_ema12 = macd_df_two.iloc[1].ema12
     long_dif_current = long_current_ema12 - long_current_ema26
 
+    current_sma5 = sma_one.iloc[0].sma5
+    current_sma20 = sma_one.iloc[0].sma20
+    dif_sma = current_sma5 - current_sma20
+
     rsi = rsi_sign(coin, date)
+
     max_price, min_price = get_max_min(coin, date)
+
+    max_rel = np.log(max_price / tick)
+    min_rel = np.log(min_price / tick)
+
+    log_ret = np.log(price_df.iloc[0].price) - np.log(price_df.iloc[1].price)
+    log_ret_p = np.log(price_df.iloc[0].price) - np.log(price_df.iloc[2].price)
+
+    histogram = macd_df_one.iloc[0].histogram
+
     data = [dif_current, dif_base, theta[0], theta[1], rsi/100, ema_dif]
     vote = services.predict_local_model(data)
 
     insert_trend(coin, date, 1, dif_current, dif_base, delta_dif,
                  theta[0], theta[1], d_theta, long_dif_current,
                  max_price, min_price,
+                 max_rel, min_rel, log_ret, log_ret_p,
+                 histogram, ema_dif, rsi, dif_sma, max_growth_p,
+                 obv,
                  vote)
     return vote

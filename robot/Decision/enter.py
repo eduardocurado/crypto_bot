@@ -80,7 +80,7 @@ def channel_strategy(coin, date, tick):
     if not macd_df.empty:
         exit_points = exit.get_exit_channel(coin, date, tick, 1)
         dif_ema = np.log(ticks.iloc[0].price/macd_df.iloc[0].ema12)
-        trend_screen_one = market_trend.trend_market(date, coin, dif_ema)
+        trend_screen_one = market_trend.trend_market(date, coin, ticks.iloc[0].price, dif_ema)
         if trend_screen_one == 1:
             return {'signal': 'BUY',
                         'take_profit': exit_points.get('take_profit'),

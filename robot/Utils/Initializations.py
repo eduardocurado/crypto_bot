@@ -149,6 +149,16 @@ def create_all_tables(user, password, db, host='localhost', port=5432):
                       Column('max_loss', Float),
                       Column('max_price', Float),
                       Column('min_price', Float),
+                      Column('max_rel', Float),
+                      Column('min_rel', Float),
+                      Column('log_ret', Float),
+                      Column('log_ret_p', Float),
+                      Column('histogram', Float),
+                      Column('ema_dif', Float),
+                      Column('rsi', Float),
+                      Column('dif_sma', Float),
+                      Column('max_growth_p', Float),
+                      Column('obv', Float),
                       Column('vote', Integer)
                       )
 
