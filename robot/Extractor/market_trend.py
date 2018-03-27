@@ -243,6 +243,5 @@ def trend_market(date, coin, tick, ema_dif):
                  max_price, min_price,
                  max_rel, min_rel, log_ret, log_ret_p,
                  histogram, ema_dif, rsi, dif_sma, max_growth_p,
-                 obv,
-                 vote)
+                 obv, vote)
     return vote
