@@ -115,6 +115,8 @@ def get_max_min_change(coin, tickers_df_two_c):
     last_date_now = date_now + timedelta(hours=24)
     base_date = date_now
     base_price = tickers_df_two_c.iloc[0].price
+    print(base_date)
+    print(last_date_now)
     tickers_one = tickers.get_all_tickers_screen(coin, 0)
     t = tickers_one[(tickers_one['date'] >= base_date) & (tickers_one['date'] <= last_date_now)]
     max_growth, max_loss = get_max_growth(t, base_price)
@@ -174,7 +176,7 @@ def trend_market(date, coin, tick, ema_dif):
     macd_df_one = macds.get_macds(n, coin, date, 1)
     macd_df_two = macds.get_macds(n, coin, date, 2)
     sma_one = smas.get_smas(n, coin, date, 1)
-    mkttrend_df = get_mkt_trends(n, coin, date, 1)
+    mkttrend_df = get_mkt_trends(6, coin, date, 1)
     if len(macd_df_one) < n and len(macd_df_two) < n:
         return None
     macd_df_one = macd_df_one[::-1]
@@ -193,6 +195,11 @@ def trend_market(date, coin, tick, ema_dif):
             obv = obv_p - volume
         else:
             obv = obv_p
+        if len(mkttrend_df) == 6:
+            prev = mkttrend_df.iloc[5]
+            last_prev_date = prev.date + timedelta(hours=24)
+            print(last_prev_date)
+            print(prev.date)
     # SET FIRST OBV: MKT TREND = 0 | 1
     elif len(mkttrend_df) == 1:
         max_growth_p = mkttrend_df.iloc[0].max_growth
