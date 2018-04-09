@@ -184,7 +184,7 @@ def trend_market(date, coin, tick, ema_dif):
     sma_one = sma_one[::-1]
     mkttrend_df = mkttrend_df[::-1]
     if len(mkttrend_df) >= 2:
-        max_growth_p = mkttrend_df.iloc[0].max_growth
+        max_growth_p = np.nan
         obv_p = mkttrend_df.iloc[0].obv
         volume = price_df.iloc[0].volume
         p_price = price_df.iloc[1].price
@@ -198,11 +198,12 @@ def trend_market(date, coin, tick, ema_dif):
         if len(mkttrend_df) == 6:
             prev = mkttrend_df.iloc[5]
             last_prev_date = prev.date + timedelta(hours=24)
-            print(last_prev_date)
             print(prev.date)
+            print(last_prev_date)
+            max_growth_p = mkttrend_df.iloc[5].max_growth
     # SET FIRST OBV: MKT TREND = 0 | 1
     elif len(mkttrend_df) == 1:
-        max_growth_p = mkttrend_df.iloc[0].max_growth
+        max_growth_p = np.nan
         obv_p = mkttrend_df.iloc[0].obv
         volume = price_df.iloc[0].volume
         p_price = price_df.iloc[1].price
